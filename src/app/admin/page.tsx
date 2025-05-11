@@ -30,14 +30,14 @@ export default function AdminItemForm() {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-4 bg-white rounded-2xl shadow">
-      <h2 className="text-xl font-semibold mb-4">Lägg till artikel</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <h2 className="text-xl text-black font-semibold mb-4">Lägg till artikel</h2>
+      <form onSubmit={handleSubmit} className="space-y-4 text-black">
         <input
           type="text"
           placeholder="Namn"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border p-2 rounded"
+          className="w-full border p-2 rounded placeholder-gray-500"
           required
         />
         <input
@@ -45,7 +45,7 @@ export default function AdminItemForm() {
           placeholder="Streckkod"
           value={barcode}
           onChange={(e) => setBarcode(e.target.value)}
-          className="w-full border p-2 rounded"
+          className="w-full border p-2 rounded placeholder-gray-500"
           required
         />
         <input
@@ -53,13 +53,13 @@ export default function AdminItemForm() {
           placeholder="Bildsökväg (valfri)"
           value={imagePath}
           onChange={(e) => setImagePath(e.target.value)}
-          className="w-full border p-2 rounded"
+          className="w-full border p-2 rounded placeholder-gray-500"
         />
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
           Spara
         </button>
       </form>
-      {message && <p className="mt-4 text-center">{message}</p>}
+      {message && <p className="mt-4 text-center text-black">{message}</p>}
     </div>
   )
 }
