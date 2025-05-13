@@ -56,6 +56,22 @@ export default function App() {
     return () => subscription?.remove?.();
   }, [showRemoveOverlay]);
 
+  // Add this useEffect hook to your component
+useEffect(() => {
+  // Prevent default touch behaviors
+  const preventDefault = (e: Event) => e.preventDefault();
+  
+  document.addEventListener('touchmove', preventDefault, { passive: false });
+  document.addEventListener('scroll', preventDefault, { passive: false });
+  document.addEventListener('gesturestart', preventDefault);
+  
+  return () => {
+    document.removeEventListener('touchmove', preventDefault);
+    document.removeEventListener('scroll', preventDefault);
+    document.removeEventListener('gesturestart', preventDefault);
+  };
+}, []);
+
   const handleBarcode = async (scannedCode: string) => {
     setErrorMessage("");
     try {
@@ -95,13 +111,7 @@ export default function App() {
   return (
     <div className="container">
       <div className="header">
-        <button
-          className="remove-btn"
-          onClick={() => setShowRemoveOverlay(true)}
-          disabled={Object.keys(items).length === 0}
-        >
-          Ta bort vara
-        </button>
+
       </div>
 
       {errorMessage && <div className="error-message">{errorMessage}</div>}
@@ -109,7 +119,6 @@ export default function App() {
       {showRemoveOverlay && (
         <div className="overlay">
           <div className="overlay-content">
-            <h3>Ta bort vara</h3>
             <p>Skanna varan du vill ta bort</p>
             <div className="overlay-buttons">
               <button
@@ -148,9 +157,20 @@ export default function App() {
           <span>{totalItems} varor</span>
           <span>{totalPrice} kr</span>
         </div>
-        <button className="scan-button" onClick={() => handleBarcode("1000")}>
-          TESTSKANNING
+
+        <div className="removeDiv">
+
+        <button
+          className="remove-btn"
+          onClick={() => setShowRemoveOverlay(true)}
+          disabled={Object.keys(items).length === 0}
+        >
+          Ta bort vara
         </button>
+      
+
+        </div>
+        
       </div>
     </div>
   );
