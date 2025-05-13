@@ -7,6 +7,7 @@ export default function App() {
     Record<string, { name: string; count: number; price?: number }>
   >({});
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
   useEffect(() => {
     let subscription: any;
@@ -39,6 +40,7 @@ export default function App() {
 
   const handleBarcode = async (scannedCode: string) => {
     setErrorMessage("");
+    setSelectedItem(null);
 
     try {
       const response = await fetch(
@@ -76,38 +78,77 @@ export default function App() {
     }
   };
 
+  const removeItem = () => {
+    if (selectedItem) {
+      setItems((prev) => {
+        const newItems = { ...prev };
+        delete newItems[selectedItem];
+        return newItems;
+      });
+      setSelectedItem(null);
+    }
+  };
+
+  const totalItems = Object.values(items).reduce(
+    (sum, item) => sum + item.count,
+    0
+  );
+  const totalPrice = Object.values(items).reduce(
+    (sum, item) => sum + item.count * (item.price || 0),
+    0
+  );
+
   return (
     <div className="container">
+      <div className="header">
+        <h2 className="items-title">Skannade artiklar</h2>
+        <button
+          className="remove-btn"
+          onClick={removeItem}
+          disabled={!selectedItem}
+        >
+          Ta bort
+        </button>
+      </div>
+
       {errorMessage && <div className="error-message">{errorMessage}</div>}
 
-      <h2 className="items-title">Skannade artiklar</h2>
-      <div className="items-scroll">
-        <ul className="items-list">
-          {Object.entries(items).map(([barcode, item]) => (
-            <li key={barcode} className="item-row">
-              <div className="item-info">
-                <div className="item-name">{item.name}</div>
-                <div className="item-price">
-                  {item.count} × {item.price ?? "––"} kr
+      <div className="scanned-items">
+        <div className="items-scroll">
+          <ul className="items-list">
+            {Object.entries(items).map(([barcode, item]) => (
+              <li
+                key={barcode}
+                className="item-row"
+                onClick={() => setSelectedItem(barcode)}
+                style={{
+                  backgroundColor:
+                    selectedItem === barcode ? "#e5e7eb" : "transparent",
+                }}
+              >
+                <div className="item-left">
+                  <div className="item-name">{item.name}</div>
+                  <div className="item-details">
+                    {item.count} × {item.price} kr
+                  </div>
                 </div>
-              </div>
-              <div className="item-total">
-                {item.price ? `${item.count * item.price} kr` : "––"}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-      {Object.keys(items).length > 0 && (
-        <div className="total-summary">
-          Totalt:{" "}
-          {Object.values(items).reduce(
-            (sum, item) => sum + (item.price ?? 0) * item.count,
-            0
-          )}{" "}
-          kr
+                <div className="item-total">
+                  {item.count * (item.price ?? 0)} kr
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
+      </div>
+
+      <div className="summary-footer">
+       
+        <div className="summary-row summary-total">
+          <span>{totalItems} varor</span>
+          <span>{totalPrice} kr</span>
+        </div>
+       
+      </div>
     </div>
   );
 }
