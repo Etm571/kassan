@@ -1,47 +1,54 @@
-import { useState, useEffect } from 'react';
-import { DataWedge } from 'capacitor-datawedge';
-import './App.css';
+import { useState, useEffect } from "react";
+import { DataWedge } from "capacitor-datawedge";
+import "./App.css";
 
 export default function App() {
-  const [barcode, setBarcode] = useState('');
-  const [items, setItems] = useState<{ name: string; barcode: string }[]>([]);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [items, setItems] = useState<
+    Record<string, { name: string; count: number; price?: number }>
+  >({});
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     let subscription: any;
 
     const addScanListener = async () => {
       try {
-        subscription = await DataWedge.addListener('scan', async (event: any) => {
-          if (event?.data) {
-            handleBarcode(event.data);
+        subscription = await DataWedge.addListener(
+          "scan",
+          async (event: any) => {
+            if (event?.data) {
+              handleBarcode(event.data);
+            }
           }
-        });
+        );
       } catch (error: any) {
-        setErrorMessage(`Kunde inte lägga till DataWedge-lyssnare: ${error.message}`);
+        setErrorMessage(
+          `Kunde inte lägga till DataWedge-lyssnare: ${error.message}`
+        );
       }
     };
 
     addScanListener();
 
     return () => {
-      if (subscription && typeof subscription.remove === 'function') {
+      if (subscription && typeof subscription.remove === "function") {
         subscription.remove();
       }
     };
   }, []);
 
   const handleBarcode = async (scannedCode: string) => {
-    setBarcode(scannedCode);
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
       const response = await fetch(
-        `https://c502-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
+        `https://255d-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(
+          scannedCode
+        )}`,
         {
           headers: {
-            'ngrok-skip-browser-warning': 'true'
-          }
+            "ngrok-skip-browser-warning": "true",
+          },
         }
       );
 
@@ -50,9 +57,19 @@ export default function App() {
       const data = await response.json();
 
       if (data?.name) {
-        setItems((prev) => [...prev, { name: data.name, barcode: scannedCode }]);
+        setItems((prev) => {
+          const existing = prev[scannedCode];
+          return {
+            ...prev,
+            [scannedCode]: {
+              name: data.name,
+              count: existing ? existing.count + 1 : 1,
+              price: data.price || 5,
+            },
+          };
+        });
       } else {
-        setErrorMessage('Svar saknar namn.');
+        setErrorMessage("Svar saknar namn.");
       }
     } catch (error: any) {
       setErrorMessage(`Fel vid GET-request: ${error.message}`);
@@ -61,26 +78,36 @@ export default function App() {
 
   return (
     <div className="container">
-      <h1 className="title">Senast scannad streckkod:</h1>
-      <p className="barcode">{barcode || 'Ingen kod ännu'}</p>
-  
-      {errorMessage && (
-        <div className="error-message">
-          {errorMessage}
-        </div>
-      )}
+      {errorMessage && <div className="error-message">{errorMessage}</div>}
 
-  
-      <div className="scanned-items">
-        <h2 className="items-title">Scannade artiklar</h2>
+      <h2 className="items-title">Skannade artiklar</h2>
+      <div className="items-scroll">
         <ul className="items-list">
-          {items.map((item, index) => (
-            <li key={index}>
-              <span className="item-name">{item.name}</span> ({item.barcode})
+          {Object.entries(items).map(([barcode, item]) => (
+            <li key={barcode} className="item-row">
+              <div className="item-info">
+                <div className="item-name">{item.name}</div>
+                <div className="item-price">
+                  {item.count} × {item.price ?? "––"} kr
+                </div>
+              </div>
+              <div className="item-total">
+                {item.price ? `${item.count * item.price} kr` : "––"}
+              </div>
             </li>
           ))}
         </ul>
       </div>
+      {Object.keys(items).length > 0 && (
+        <div className="total-summary">
+          Totalt:{" "}
+          {Object.values(items).reduce(
+            (sum, item) => sum + (item.price ?? 0) * item.count,
+            0
+          )}{" "}
+          kr
+        </div>
+      )}
     </div>
   );
-}  
+}
