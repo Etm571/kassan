@@ -56,21 +56,14 @@ export default function App() {
     return () => subscription?.remove?.();
   }, [showRemoveOverlay]);
 
-  // Add this useEffect hook to your component
-useEffect(() => {
-  // Prevent default touch behaviors
-  const preventDefault = (e: Event) => e.preventDefault();
+  useEffect(() => {
+    const preventDefault = (e: Event) => e.preventDefault();
+    document.addEventListener('gesturestart', preventDefault);
+    return () => {
+      document.removeEventListener('gesturestart', preventDefault);
+    };
+  }, []);
   
-  document.addEventListener('touchmove', preventDefault, { passive: false });
-  document.addEventListener('scroll', preventDefault, { passive: false });
-  document.addEventListener('gesturestart', preventDefault);
-  
-  return () => {
-    document.removeEventListener('touchmove', preventDefault);
-    document.removeEventListener('scroll', preventDefault);
-    document.removeEventListener('gesturestart', preventDefault);
-  };
-}, []);
 
   const handleBarcode = async (scannedCode: string) => {
     setErrorMessage("");
