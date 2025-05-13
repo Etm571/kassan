@@ -30,9 +30,16 @@ body {
   color: white;
   padding: 0.6rem 1rem;
   border: none;
-  border-radius: 0.4rem;
+  border-radius: 0.9rem;
   font-size: 1rem;
   font-weight: bold;
+  width: 400px;
+  margin: auto;
+}
+
+.remove-btn:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
 }
 
 .error-message {
@@ -121,4 +128,56 @@ body {
   font-size: 1.2rem;
   width: 100%;
   text-align: center;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.overlay-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  width: 80%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.overlay-content h3 {
+  margin-top: 0;
+  color: #1f2937;
+}
+
+.overlay-content p {
+  margin-bottom: 1.5rem;
+  color: #4b5563;
+}
+
+.overlay-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.cancel-btn {
+  background-color: #6b7280;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background-color: #4b5563;
 }

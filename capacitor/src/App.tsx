@@ -7,85 +7,79 @@ export default function App() {
     Record<string, { name: string; count: number; price?: number }>
   >({});
   const [errorMessage, setErrorMessage] = useState("");
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [showRemoveOverlay, setShowRemoveOverlay] = useState(false);
 
   useEffect(() => {
     let subscription: any;
 
-    const addScanListener = async () => {
-      try {
-        subscription = await DataWedge.addListener(
-          "scan",
-          async (event: any) => {
-            if (event?.data) {
-              handleBarcode(event.data);
-            }
+    const handleScan = async (event: any) => {
+      if (!event?.data) return;
+
+      if (showRemoveOverlay) {
+        const scannedCode = event.data;
+        setItems((prev) => {
+          const existing = prev[scannedCode];
+          if (!existing) {
+            setErrorMessage("Varan finns inte i listan");
+            return prev;
           }
-        );
+
+          if (existing.count > 1) {
+            return {
+              ...prev,
+              [scannedCode]: {
+                ...existing,
+                count: existing.count - 1,
+              },
+            };
+          } else {
+            const newItems = { ...prev };
+            delete newItems[scannedCode];
+            return newItems;
+          }
+        });
+        setShowRemoveOverlay(false);
+      } else {
+        handleBarcode(event.data);
+      }
+    };
+
+    const addListener = async () => {
+      try {
+        subscription = await DataWedge.addListener("scan", handleScan);
       } catch (error: any) {
-        setErrorMessage(
-          `Kunde inte lägga till DataWedge-lyssnare: ${error.message}`
-        );
+        setErrorMessage(`Scan error: ${error.message}`);
       }
     };
 
-    addScanListener();
-
-    return () => {
-      if (subscription && typeof subscription.remove === "function") {
-        subscription.remove();
-      }
-    };
-  }, []);
+    addListener();
+    return () => subscription?.remove?.();
+  }, [showRemoveOverlay]);
 
   const handleBarcode = async (scannedCode: string) => {
     setErrorMessage("");
-    setSelectedItem(null);
-
     try {
       const response = await fetch(
         `https://255d-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(
           scannedCode
         )}`,
-        {
-          headers: {
-            "ngrok-skip-browser-warning": "true",
-          },
-        }
+        { headers: { "ngrok-skip-browser-warning": "true" } }
       );
-
-      if (!response.ok) throw new Error(`Fel vid hämtning: ${response.status}`);
+      if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
 
       const data = await response.json();
+      if (!data?.name) throw new Error("Invalid item data");
 
-      if (data?.name) {
-        setItems((prev) => {
-          const existing = prev[scannedCode];
-          return {
-            ...prev,
-            [scannedCode]: {
-              name: data.name,
-              count: existing ? existing.count + 1 : 1,
-              price: data.price || 5,
-            },
-          };
-        });
-      } else {
-        setErrorMessage("Svar saknar namn.");
-      }
+      setItems((prev) => ({
+        ...prev,
+        [scannedCode]: {
+          name: data.name,
+          count: prev[scannedCode] ? prev[scannedCode].count + 1 : 1,
+          price: data.price || 5,
+        },
+      }));
     } catch (error: any) {
-      setErrorMessage(`Fel vid GET-request: ${error.message}`);
-    }
-  };
-
-  const removeItem = () => {
-    if (selectedItem) {
-      setItems((prev) => {
-        const newItems = { ...prev };
-        delete newItems[selectedItem];
-        return newItems;
-      });
-      setSelectedItem(null);
+      setErrorMessage(error.message);
     }
   };
 
@@ -101,31 +95,39 @@ export default function App() {
   return (
     <div className="container">
       <div className="header">
-        <h2 className="items-title">Skannade artiklar</h2>
         <button
           className="remove-btn"
-          onClick={removeItem}
-          disabled={!selectedItem}
+          onClick={() => setShowRemoveOverlay(true)}
+          disabled={Object.keys(items).length === 0}
         >
-          Ta bort
+          Ta bort vara
         </button>
       </div>
 
       {errorMessage && <div className="error-message">{errorMessage}</div>}
 
+      {showRemoveOverlay && (
+        <div className="overlay">
+          <div className="overlay-content">
+            <h3>Ta bort vara</h3>
+            <p>Skanna varan du vill ta bort</p>
+            <div className="overlay-buttons">
+              <button
+                className="cancel-btn"
+                onClick={() => setShowRemoveOverlay(false)}
+              >
+                Avbryt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="scanned-items">
         <div className="items-scroll">
           <ul className="items-list">
             {Object.entries(items).map(([barcode, item]) => (
-              <li
-                key={barcode}
-                className="item-row"
-                onClick={() => setSelectedItem(barcode)}
-                style={{
-                  backgroundColor:
-                    selectedItem === barcode ? "#e5e7eb" : "transparent",
-                }}
-              >
+              <li key={barcode} className="item-row">
                 <div className="item-left">
                   <div className="item-name">{item.name}</div>
                   <div className="item-details">
@@ -142,12 +144,13 @@ export default function App() {
       </div>
 
       <div className="summary-footer">
-       
         <div className="summary-row summary-total">
           <span>{totalItems} varor</span>
           <span>{totalPrice} kr</span>
         </div>
-       
+        <button className="scan-button" onClick={() => handleBarcode("1000")}>
+          TESTSKANNING
+        </button>
       </div>
     </div>
   );
