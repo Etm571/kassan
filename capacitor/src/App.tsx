@@ -6,7 +6,6 @@ export default function App() {
   const [items, setItems] = useState<
     Record<string, { name: string; count: number; price?: number }>
   >({});
-  const [errorMessage, setErrorMessage] = useState("");
   const [showRemoveOverlay, setShowRemoveOverlay] = useState(false);
 
   useEffect(() => {
@@ -20,7 +19,6 @@ export default function App() {
         setItems((prev) => {
           const existing = prev[scannedCode];
           if (!existing) {
-            setErrorMessage("Varan finns inte i listan");
             return prev;
           }
 
@@ -48,7 +46,6 @@ export default function App() {
       try {
         subscription = await DataWedge.addListener("scan", handleScan);
       } catch (error: any) {
-        setErrorMessage(`Scan error: ${error.message}`);
       }
     };
 
@@ -66,10 +63,9 @@ export default function App() {
   
 
   const handleBarcode = async (scannedCode: string) => {
-    setErrorMessage("");
     try {
       const response = await fetch(
-        `https://255d-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(
+        `https://739a-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(
           scannedCode
         )}`,
         { headers: { "ngrok-skip-browser-warning": "true" } }
@@ -88,7 +84,7 @@ export default function App() {
         },
       }));
     } catch (error: any) {
-      setErrorMessage(error.message);
+      return
     }
   };
 
@@ -103,11 +99,6 @@ export default function App() {
 
   return (
     <div className="container">
-      <div className="header">
-
-      </div>
-
-      {errorMessage && <div className="error-message">{errorMessage}</div>}
 
       {showRemoveOverlay && (
         <div className="overlay">
@@ -160,7 +151,6 @@ export default function App() {
         >
           Ta bort vara
         </button>
-      
 
         </div>
         

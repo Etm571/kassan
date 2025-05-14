@@ -1,3 +1,8 @@
+* {
+  box-sizing: border-box;
+}
+
+
 html, body {
   height: 100%;
   margin: 0;
@@ -6,16 +11,6 @@ html, body {
 .container {
   max-width: 480px;
   margin: 0 auto;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 0.8rem 1rem;
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .remove-btn {
@@ -44,16 +39,6 @@ html, body {
   background-color: #ffffff;
 }
 
-.error-message {
-  background-color: #fee2e2;
-  color: #991b1b;
-  padding: 0.8rem 1rem;
-  border-radius: 0;
-  width: 100%;
-  font-size: 1rem;
-  text-align: center;
-}
-
 .scanned-items {
   background-color: #ffffff;
   flex-grow: 1;
@@ -67,7 +52,6 @@ html, body {
   max-height: calc(100vh - 250px);
   width: 100%;
 }
-
 .item-row {
   display: flex;
   justify-content: space-between;
@@ -75,6 +59,15 @@ html, body {
   padding: 1rem 0;
   border-bottom: 1px solid #e5e7eb;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.item-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
 }
 
 .item-name {
