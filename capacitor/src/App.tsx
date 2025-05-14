@@ -8,10 +8,17 @@ export default function App() {
   >([]);
   const [showRemoveOverlay, setShowRemoveOverlay] = useState(false);
   const itemsContainerRef = useRef<HTMLDivElement>(null);
+  const lastScannedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (itemsContainerRef.current) {
-      itemsContainerRef.current.scrollTop = itemsContainerRef.current.scrollHeight;
+    if (lastScannedRef.current) {
+      const element = lastScannedRef.current;
+      element.classList.add("new-item-highlight");
+      element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      
+      setTimeout(() => {
+        element.classList.remove("new-item-highlight");
+      }, 1000);
     }
   }, [items]);
 
@@ -40,7 +47,43 @@ export default function App() {
         });
         setShowRemoveOverlay(false);
       } else {
-        handleBarcode(event.data);
+        const scannedCode = event.data;
+        try {
+          const response = await fetch(
+            `https://9396-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
+            { headers: { "ngrok-skip-browser-warning": "true" } }
+          );
+          if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+
+          const data = await response.json();
+          if (!data?.name) throw new Error("Invalid item data");
+
+          setItems(prev => {
+            const existingIndex = prev.findIndex(item => item.barcode === scannedCode);
+            
+            if (existingIndex >= 0) {
+              const updatedItem = { 
+                ...prev[existingIndex], 
+                count: prev[existingIndex].count + 1 
+              };
+              return [
+                ...prev.filter(item => item.barcode !== scannedCode),
+                updatedItem
+              ];
+            }
+            return [
+              ...prev,
+              {
+                barcode: scannedCode,
+                name: data.name,
+                count: 1,
+                price: data.price || 5
+              }
+            ];
+          });
+        } catch (error) {
+          console.error("Scanning error:", error);
+        }
       }
     };
 
@@ -56,44 +99,6 @@ export default function App() {
     return () => subscription?.remove?.();
   }, [showRemoveOverlay]);
 
-  const handleBarcode = async (scannedCode: string) => {
-    try {
-      const response = await fetch(
-        `https://9396-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
-        { headers: { "ngrok-skip-browser-warning": "true" } }
-      );
-      if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
-
-      const data = await response.json();
-      if (!data?.name) throw new Error("Invalid item data");
-
-      setItems(prev => {
-        const existingIndex = prev.findIndex(item => item.barcode === scannedCode);
-        
-        if (existingIndex >= 0) {
-          const newItems = [...prev];
-          newItems[existingIndex] = {
-            ...newItems[existingIndex],
-            count: newItems[existingIndex].count + 1
-          };
-          return newItems;
-        } else {
-          return [
-            ...prev,
-            {
-              barcode: scannedCode,
-              name: data.name,
-              count: 1,
-              price: data.price || 5
-            }
-          ];
-        }
-      });
-    } catch (error) {
-      console.error("Scanning error:", error);
-    }
-  };
-
   const totalItems = items.reduce((sum, item) => sum + item.count, 0);
   const totalPrice = items.reduce((sum, item) => sum + item.count * (item.price || 0), 0);
 
@@ -102,7 +107,7 @@ export default function App() {
       {showRemoveOverlay && (
         <div className="overlay">
           <div className="overlay-content">
-            <p>Skanna varan du vill ta nege</p>
+            <p>Skanna varan du vill ta bort</p>
             <div className="overlay-buttons">
               <button
                 className="cancel-btn"
@@ -118,8 +123,12 @@ export default function App() {
       <div className="scanned-items">
         <div className="items-scroll" ref={itemsContainerRef}>
           <div className="items-list">
-            {items.map((item) => (
-              <div key={item.barcode} className="item-row">
+            {items.map((item, index) => (
+              <div 
+                key={item.barcode} 
+                className="item-row"
+                ref={index === items.length - 1 ? lastScannedRef : null}
+              >
                 <div className="item-left">
                   <div className="item-name">{item.name}</div>
                   <div className="item-details">
