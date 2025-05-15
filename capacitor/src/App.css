@@ -29,9 +29,10 @@ html, body {
   overflow-y: auto;
   height: 100%;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   scroll-behavior: smooth;
   padding-bottom: 30px;
+  overscroll-behavior-y: contain;
 }
 
 .items-list {
@@ -48,26 +49,12 @@ html, body {
   background-color: white;
   margin: 2px 0;
   border-radius: 8px;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.new-item-highlight .item-name {
-  animation: highlightUpdate 3s ease-out;
-  color: #22c55e;
-}
 
-@keyframes highlightUpdate {
-  0% {
-    background-color: rgba(76, 175, 80, 0.1);
-    transform: translateY(-3px);
-    color: #22c55e;
-  }
-  100% {
-    background-color: transparent;
-    transform: translateY(0);
-    color: inherit;
-  }
-}
 
 .item-left {
   flex: 1;
@@ -78,7 +65,14 @@ html, body {
   font-size: 1.2rem;
   margin-bottom: 0.3rem;
   color: #1a1a1a;
+  transition: color 0.5s ease;
 }
+.new-item-highlight .item-name {
+  color: #22c55e;
+  font-weight: 700;
+  transition: color 3s ease;
+}
+
 
 .item-details {
   font-size: 1rem;
@@ -212,4 +206,84 @@ html, body {
 
 .items-scroll::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+.items-scroll {
+  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+  scroll-behavior: smooth;
+  padding-bottom: 30px;
+  overscroll-behavior-y: contain;
+}
+
+.unknown-item-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.unknown-item-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 80%;
+  max-width: 350px;
+  text-align: center;
+}
+
+.unknown-item-title {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+}
+
+.unknown-item-barcode {
+  font-family: monospace;
+  background-color: #f3f4f6;
+  padding: 0.5rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  word-break: break-all;
+}
+
+.unknown-item-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.unknown-item-btn {
+  flex: 1;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.unknown-item-confirm {
+  background-color: #22c55e;
+  color: white;
+}
+
+.unknown-item-confirm:hover {
+  background-color: #16a34a;
+}
+
+.unknown-item-cancel {
+  background-color: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.unknown-item-cancel:hover {
+  background-color: #e5e7eb;
 }

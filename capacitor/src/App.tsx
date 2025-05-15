@@ -1,26 +1,38 @@
 import { useState, useEffect, useRef } from "react";
 import { DataWedge } from "capacitor-datawedge";
 import "./App.css";
+import WelcomeScreen from "./views/startScanning";
 
 export default function App() {
   const [items, setItems] = useState<
     { barcode: string; name: string; count: number; price?: number }[]
   >([]);
   const [showRemoveOverlay, setShowRemoveOverlay] = useState(false);
+  const [showUnknownItemPopup, setShowUnknownItemPopup] = useState(false);
   const itemsContainerRef = useRef<HTMLDivElement>(null);
   const lastScannedRef = useRef<HTMLDivElement>(null);
-  const itemCache = useRef<Map<string, { name: string; price?: number }>>(new Map());
+  const itemCache = useRef<Map<string, { name: string; price?: number }>>(
+    new Map()
+  );
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
 
   useEffect(() => {
-    if (lastScannedRef.current) {
+    const timeout = setTimeout(() => {
+      if (!lastScannedRef.current || !itemsContainerRef.current) return;
+
       const element = lastScannedRef.current;
+      const container = itemsContainerRef.current;
+
       element.classList.add("new-item-highlight");
-      element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+      container.scrollTop = container.scrollHeight;
 
       setTimeout(() => {
         element.classList.remove("new-item-highlight");
-      }, 1000);
-    }
+      }, 3000);
+    }, 0);
+
+    return () => clearTimeout(timeout);
   }, [items]);
 
   useEffect(() => {
@@ -36,11 +48,11 @@ export default function App() {
         if (!Array.isArray(data)) throw new Error("Invalid items data");
 
         itemCache.current.clear();
-        data.forEach(item => {
+        data.forEach((item) => {
           if (item.barcode) {
-            itemCache.current.set(item.barcode, { 
-              name: item.name || "Unknown Item", 
-              price: item.price || 5 
+            itemCache.current.set(item.barcode, {
+              name: item.name || "Unknown Item",
+              price: item.price || 5,
             });
           }
         });
@@ -52,53 +64,55 @@ export default function App() {
     fetchAllItems();
   }, []);
 
+  const addItem = (barcode: string, name: string, price?: number) => {
+    setItems((prev) => {
+      const existingIndex = prev.findIndex((item) => item.barcode === barcode);
+      if (existingIndex >= 0) {
+        const updatedItem = {
+          ...prev[existingIndex],
+          count: prev[existingIndex].count + 1,
+        };
+        return [
+          ...prev.filter((item) => item.barcode !== barcode),
+          updatedItem,
+        ];
+      }
+      return [
+        ...prev,
+        {
+          barcode,
+          name,
+          count: 1,
+          price: price || 5,
+        },
+      ];
+    });
+  };
+
   useEffect(() => {
     let subscription: any;
-
-    const updateItemsWithData = (
-      barcode: string,
-      name: string,
-      price?: number
-    ) => {
-      setItems(prev => {
-        const existingIndex = prev.findIndex(item => item.barcode === barcode);
-        if (existingIndex >= 0) {
-          const updatedItem = {
-            ...prev[existingIndex],
-            count: prev[existingIndex].count + 1
-          };
-          return [
-            ...prev.filter(item => item.barcode !== barcode),
-            updatedItem
-          ];
-        }
-        return [
-          ...prev,
-          {
-            barcode,
-            name,
-            count: 1,
-            price: price || 5
-          }
-        ];
-      });
-    };
 
     const handleScan = async (event: any) => {
       if (!event?.data) return;
 
       const scannedCode = event.data;
 
+      if (showWelcomeScreen) {
+        setShowWelcomeScreen(false);
+      }
+
       if (showRemoveOverlay) {
-        setItems(prev => {
-          const itemIndex = prev.findIndex(item => item.barcode === scannedCode);
+        setItems((prev) => {
+          const itemIndex = prev.findIndex(
+            (item) => item.barcode === scannedCode
+          );
           if (itemIndex === -1) return prev;
 
           const newItems = [...prev];
           if (newItems[itemIndex].count > 1) {
             newItems[itemIndex] = {
               ...newItems[itemIndex],
-              count: newItems[itemIndex].count - 1
+              count: newItems[itemIndex].count - 1,
             };
           } else {
             newItems.splice(itemIndex, 1);
@@ -111,12 +125,10 @@ export default function App() {
 
       if (itemCache.current.has(scannedCode)) {
         const cached = itemCache.current.get(scannedCode)!;
-        updateItemsWithData(scannedCode, cached.name, cached.price);
+        addItem(scannedCode, cached.name, cached.price);
         return;
       }
-      itemCache.current.set(scannedCode, { name: "Unknown Item", price: 5 });
-      updateItemsWithData(scannedCode, "Unknown Item", 5);
-
+      setShowUnknownItemPopup(true);
     };
 
     const addListener = async () => {
@@ -129,10 +141,18 @@ export default function App() {
 
     addListener();
     return () => subscription?.remove?.();
-  }, [showRemoveOverlay]);
+  }, [showRemoveOverlay, showWelcomeScreen]);
+
+
+  const handleCancelUnknownItem = () => {
+    setShowUnknownItemPopup(false);
+  };
 
   const totalItems = items.reduce((sum, item) => sum + item.count, 0);
-  const totalPrice = items.reduce((sum, item) => sum + item.count * (item.price || 0), 0);
+  const totalPrice = items.reduce(
+    (sum, item) => sum + item.count * (item.price || 0),
+    0
+  );
 
   return (
     <div className="container">
@@ -151,6 +171,24 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {showUnknownItemPopup && (
+        <div className="unknown-item-popup">
+          <div className="unknown-item-content">
+            <h3 className="unknown-item-title">Okänd varukod</h3>
+            <div className="unknown-item-buttons">
+              <button
+                className="unknown-item-btn unknown-item-cancel"
+                onClick={handleCancelUnknownItem}
+              >
+                Avbryt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWelcomeScreen && <WelcomeScreen />}
 
       <div className="scanned-items">
         <div className="items-scroll" ref={itemsContainerRef}>
