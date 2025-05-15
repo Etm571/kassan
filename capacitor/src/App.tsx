@@ -50,7 +50,7 @@ export default function App() {
         const scannedCode = event.data;
         try {
           const response = await fetch(
-            `https://9396-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
+            `https://847d-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
             { headers: { "ngrok-skip-browser-warning": "true" } }
           );
           if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
