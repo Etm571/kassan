@@ -24,6 +24,35 @@ export default function App() {
   }, [items]);
 
   useEffect(() => {
+    const fetchAllItems = async () => {
+      try {
+        const response = await fetch(
+          "https://578b-94-255-179-130.ngrok-free.app/api/items/manage",
+          { headers: { "ngrok-skip-browser-warning": "true" } }
+        );
+        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error("Invalid items data");
+
+        itemCache.current.clear();
+        data.forEach(item => {
+          if (item.barcode) {
+            itemCache.current.set(item.barcode, { 
+              name: item.name || "Unknown Item", 
+              price: item.price || 5 
+            });
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching all items:", error);
+      }
+    };
+
+    fetchAllItems();
+  }, []);
+
+  useEffect(() => {
     let subscription: any;
 
     const updateItemsWithData = (
@@ -85,22 +114,9 @@ export default function App() {
         updateItemsWithData(scannedCode, cached.name, cached.price);
         return;
       }
+      itemCache.current.set(scannedCode, { name: "Unknown Item", price: 5 });
+      updateItemsWithData(scannedCode, "Unknown Item", 5);
 
-      try {
-        const response = await fetch(
-          `https://1b45-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
-          { headers: { "ngrok-skip-browser-warning": "true" } }
-        );
-        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
-
-        const data = await response.json();
-        if (!data?.name) throw new Error("Invalid item data");
-
-        itemCache.current.set(scannedCode, { name: data.name, price: data.price || 5 });
-        updateItemsWithData(scannedCode, data.name, data.price);
-      } catch (error) {
-        console.error("Scanning error:", error);
-      }
     };
 
     const addListener = async () => {
