@@ -15,9 +15,10 @@ datasource db {
 }
 
 model Item {
-  id         Int      @id @default(autoincrement())
-  name       String   @unique
-  barcode    String   @unique
-  createdAt  DateTime @default(now())
-  imagePath  String?
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  barcode   String   @unique
+  createdAt DateTime @default(now())
+  price     Decimal  @default(0.00) @db.Decimal(10, 2)
+  imagePath String?
 }

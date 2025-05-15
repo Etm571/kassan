@@ -54,18 +54,23 @@ html, body {
 
 .new-item-highlight {
   animation: highlightUpdate 1s ease-out;
+  color: #22c55e;
 }
+
 
 @keyframes highlightUpdate {
   0% {
     background-color: rgba(76, 175, 80, 0.1);
     transform: translateY(-3px);
+    color: #22c55e;
   }
   100% {
     background-color: transparent;
     transform: translateY(0);
+    color: inherit;
   }
 }
+
 
 .item-left {
   flex: 1;

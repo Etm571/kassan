@@ -9,13 +9,14 @@ export default function App() {
   const [showRemoveOverlay, setShowRemoveOverlay] = useState(false);
   const itemsContainerRef = useRef<HTMLDivElement>(null);
   const lastScannedRef = useRef<HTMLDivElement>(null);
+  const itemCache = useRef<Map<string, { name: string; price?: number }>>(new Map());
 
   useEffect(() => {
     if (lastScannedRef.current) {
       const element = lastScannedRef.current;
       element.classList.add("new-item-highlight");
       element.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      
+
       setTimeout(() => {
         element.classList.remove("new-item-highlight");
       }, 1000);
@@ -25,11 +26,41 @@ export default function App() {
   useEffect(() => {
     let subscription: any;
 
+    const updateItemsWithData = (
+      barcode: string,
+      name: string,
+      price?: number
+    ) => {
+      setItems(prev => {
+        const existingIndex = prev.findIndex(item => item.barcode === barcode);
+        if (existingIndex >= 0) {
+          const updatedItem = {
+            ...prev[existingIndex],
+            count: prev[existingIndex].count + 1
+          };
+          return [
+            ...prev.filter(item => item.barcode !== barcode),
+            updatedItem
+          ];
+        }
+        return [
+          ...prev,
+          {
+            barcode,
+            name,
+            count: 1,
+            price: price || 5
+          }
+        ];
+      });
+    };
+
     const handleScan = async (event: any) => {
       if (!event?.data) return;
 
+      const scannedCode = event.data;
+
       if (showRemoveOverlay) {
-        const scannedCode = event.data;
         setItems(prev => {
           const itemIndex = prev.findIndex(item => item.barcode === scannedCode);
           if (itemIndex === -1) return prev;
@@ -46,44 +77,29 @@ export default function App() {
           return newItems;
         });
         setShowRemoveOverlay(false);
-      } else {
-        const scannedCode = event.data;
-        try {
-          const response = await fetch(
-            `https://847d-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
-            { headers: { "ngrok-skip-browser-warning": "true" } }
-          );
-          if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+        return;
+      }
 
-          const data = await response.json();
-          if (!data?.name) throw new Error("Invalid item data");
+      if (itemCache.current.has(scannedCode)) {
+        const cached = itemCache.current.get(scannedCode)!;
+        updateItemsWithData(scannedCode, cached.name, cached.price);
+        return;
+      }
 
-          setItems(prev => {
-            const existingIndex = prev.findIndex(item => item.barcode === scannedCode);
-            
-            if (existingIndex >= 0) {
-              const updatedItem = { 
-                ...prev[existingIndex], 
-                count: prev[existingIndex].count + 1 
-              };
-              return [
-                ...prev.filter(item => item.barcode !== scannedCode),
-                updatedItem
-              ];
-            }
-            return [
-              ...prev,
-              {
-                barcode: scannedCode,
-                name: data.name,
-                count: 1,
-                price: data.price || 5
-              }
-            ];
-          });
-        } catch (error) {
-          console.error("Scanning error:", error);
-        }
+      try {
+        const response = await fetch(
+          `https://847d-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
+          { headers: { "ngrok-skip-browser-warning": "true" } }
+        );
+        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+
+        const data = await response.json();
+        if (!data?.name) throw new Error("Invalid item data");
+
+        itemCache.current.set(scannedCode, { name: data.name, price: data.price || 5 });
+        updateItemsWithData(scannedCode, data.name, data.price);
+      } catch (error) {
+        console.error("Scanning error:", error);
       }
     };
 
@@ -124,8 +140,8 @@ export default function App() {
         <div className="items-scroll" ref={itemsContainerRef}>
           <div className="items-list">
             {items.map((item, index) => (
-              <div 
-                key={item.barcode} 
+              <div
+                key={item.barcode}
                 className="item-row"
                 ref={index === items.length - 1 ? lastScannedRef : null}
               >
