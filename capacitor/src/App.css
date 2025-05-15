@@ -52,7 +52,7 @@ html, body {
 }
 
 .new-item-highlight .item-name {
-  animation: highlightUpdate 1s ease-out;
+  animation: highlightUpdate 3s ease-out;
   color: #22c55e;
 }
 
