@@ -9,9 +9,7 @@ export default function App() {
   const [showRemoveOverlay, setShowRemoveOverlay] = useState(false);
   const itemsContainerRef = useRef<HTMLDivElement>(null);
   const lastScannedRef = useRef<HTMLDivElement>(null);
-  const itemCache = useRef<Map<string, { name: string; price?: number }>>(
-    new Map()
-  );
+  const itemCache = useRef<Map<string, { name: string; price?: number }>>(new Map());
 
   useEffect(() => {
     if (lastScannedRef.current) {
@@ -27,58 +25,22 @@ export default function App() {
 
   useEffect(() => {
     let subscription: any;
-    const syncInterval = 10 * 60 * 1000;
-    let syncTimer: NodeJS.Timeout;
-
-    const fetchAllItems = async () => {
-  try {
-    const res = await fetch(
-      "https://847d-94-255-179-130.ngrok-free.app/api/items/manage",
-      { headers: { "ngrok-skip-browser-warning": "true" } }
-    );
-    if (!res.ok) throw new Error(`Fel vid hämtning: ${res.status}`);
-    const data: { barcode: string; name: string; price?: number }[] =
-      await res.json();
-
-    const newCache = new Map<string, { name: string; price?: number }>();
-    data.forEach((item) => {
-      newCache.set(item.barcode, { name: item.name, price: item.price });
-    });
-    itemCache.current = newCache;
-
-    setItems(
-      data.map((item) => ({
-        barcode: item.barcode,
-        name: item.name,
-        count: 0,
-        price: item.price,
-      }))
-    );
-
-    console.log("Cache och items uppdaterad med", data.length, "artiklar");
-  } catch (err) {
-    console.error("Misslyckades att synka artiklar:", err);
-  }
-};
-
 
     const updateItemsWithData = (
       barcode: string,
       name: string,
       price?: number
     ) => {
-      setItems((prev) => {
-        const existingIndex = prev.findIndex(
-          (item) => item.barcode === barcode
-        );
+      setItems(prev => {
+        const existingIndex = prev.findIndex(item => item.barcode === barcode);
         if (existingIndex >= 0) {
           const updatedItem = {
             ...prev[existingIndex],
-            count: prev[existingIndex].count + 1,
+            count: prev[existingIndex].count + 1
           };
           return [
-            ...prev.filter((item) => item.barcode !== barcode),
-            updatedItem,
+            ...prev.filter(item => item.barcode !== barcode),
+            updatedItem
           ];
         }
         return [
@@ -87,8 +49,8 @@ export default function App() {
             barcode,
             name,
             count: 1,
-            price: price !== undefined ? price : 5,
-          },
+            price: price || 5
+          }
         ];
       });
     };
@@ -99,17 +61,15 @@ export default function App() {
       const scannedCode = event.data;
 
       if (showRemoveOverlay) {
-        setItems((prev) => {
-          const itemIndex = prev.findIndex(
-            (item) => item.barcode === scannedCode
-          );
+        setItems(prev => {
+          const itemIndex = prev.findIndex(item => item.barcode === scannedCode);
           if (itemIndex === -1) return prev;
 
           const newItems = [...prev];
           if (newItems[itemIndex].count > 1) {
             newItems[itemIndex] = {
               ...newItems[itemIndex],
-              count: newItems[itemIndex].count - 1,
+              count: newItems[itemIndex].count - 1
             };
           } else {
             newItems.splice(itemIndex, 1);
@@ -120,17 +80,30 @@ export default function App() {
         return;
       }
 
-      const cached = itemCache.current.get(scannedCode);
-      if (cached) {
+      if (itemCache.current.has(scannedCode)) {
+        const cached = itemCache.current.get(scannedCode)!;
         updateItemsWithData(scannedCode, cached.name, cached.price);
-      } else {
-        console.warn("Artikel ej hittad i cache:", scannedCode);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `https://1b45-94-255-179-130.ngrok-free.app/api/items?barcode=${encodeURIComponent(scannedCode)}`,
+          { headers: { "ngrok-skip-browser-warning": "true" } }
+        );
+        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+
+        const data = await response.json();
+        if (!data?.name) throw new Error("Invalid item data");
+
+        itemCache.current.set(scannedCode, { name: data.name, price: data.price || 5 });
+        updateItemsWithData(scannedCode, data.name, data.price);
+      } catch (error) {
+        console.error("Scanning error:", error);
       }
     };
 
-    const init = async () => {
-      await fetchAllItems();
-      syncTimer = setInterval(fetchAllItems, syncInterval);
+    const addListener = async () => {
       try {
         subscription = await DataWedge.addListener("scan", handleScan);
       } catch (error) {
@@ -138,21 +111,12 @@ export default function App() {
       }
     };
 
-    init();
-
-    return () => {
-      subscription?.remove?.();
-      clearInterval(syncTimer);
-    };
+    addListener();
+    return () => subscription?.remove?.();
   }, [showRemoveOverlay]);
 
   const totalItems = items.reduce((sum, item) => sum + item.count, 0);
-  const totalPrice = items.reduce(
-    (sum, item) => sum + item.count * (item.price || 0),
-    0
-  );
-
-  const formatPrice = (price: number) => price.toFixed(2);
+  const totalPrice = items.reduce((sum, item) => sum + item.count * (item.price || 0), 0);
 
   return (
     <div className="container">
@@ -184,11 +148,11 @@ export default function App() {
                 <div className="item-left">
                   <div className="item-name">{item.name}</div>
                   <div className="item-details">
-                    {item.count} × {item.price !== undefined ? formatPrice(item.price) : "0.00"} kr
+                    {item.count} × {item.price} kr
                   </div>
                 </div>
                 <div className="item-total">
-                  {formatPrice(item.count * (item.price ?? 0))} kr
+                  {item.count * (item.price ?? 0)} kr
                 </div>
               </div>
             ))}
@@ -199,7 +163,7 @@ export default function App() {
       <div className="summary-footer">
         <div className="summary-row summary-total">
           <span>{totalItems} varor</span>
-          <span>{formatPrice(totalPrice)} kr</span>
+          <span>{totalPrice} kr</span>
         </div>
 
         <div className="removeDiv">
