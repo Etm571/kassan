@@ -50,7 +50,6 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
         </div>
         
         <div className="welcome-text">
-          <h2>Välkommen</h2>
           <p>{message || "Skanna en vara för att börja"}</p>
         </div>
       </div>

@@ -39,7 +39,7 @@ export default function App() {
     const fetchAllItems = async () => {
       try {
         const response = await fetch(
-          "https://578b-94-255-179-130.ngrok-free.app/api/items/manage",
+          "https://14c1-94-255-179-130.ngrok-free.app/api/items/manage",
           { headers: { "ngrok-skip-browser-warning": "true" } }
         );
         if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
@@ -143,7 +143,6 @@ export default function App() {
     return () => subscription?.remove?.();
   }, [showRemoveOverlay, showWelcomeScreen]);
 
-
   const handleCancelUnknownItem = () => {
     setShowUnknownItemPopup(false);
   };
@@ -181,14 +180,13 @@ export default function App() {
                 className="unknown-item-btn unknown-item-cancel"
                 onClick={handleCancelUnknownItem}
               >
-                Avbryt
+                Okej
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {showWelcomeScreen && <WelcomeScreen />}
 
       <div className="scanned-items">
         <div className="items-scroll" ref={itemsContainerRef}>
@@ -216,7 +214,7 @@ export default function App() {
 
       <div className="summary-footer">
         <div className="summary-row summary-total">
-          <span>{totalItems} varor</span>
+          <span>{totalItems === 1 ? "1 vara" : `${totalItems} varor`}</span>
           <span>{totalPrice} kr</span>
         </div>
 

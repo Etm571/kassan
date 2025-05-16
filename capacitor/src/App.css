@@ -130,8 +130,15 @@ html, body {
   background-color: #e0e0e0;
 }
 
+.remove-btn:hover:disabled {
+  background-color: #f0f0f0;
+  cursor: default;
+}
+
 .remove-btn:disabled {
-  display: none;
+  color: gray;
+  cursor: default;
+
 }
 
 .removeDiv {
