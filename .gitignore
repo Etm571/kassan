@@ -42,5 +42,7 @@ next-env.d.ts
 
 capacitor/node_modules
 capacitor/android
+capacitor/dist
 
 src/generated/prisma
+
