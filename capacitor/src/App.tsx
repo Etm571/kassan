@@ -187,6 +187,7 @@ export default function App() {
         </div>
       )}
 
+      {showWelcomeScreen && <WelcomeScreen />}
 
       <div className="scanned-items">
         <div className="items-scroll" ref={itemsContainerRef}>
