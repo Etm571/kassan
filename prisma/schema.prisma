@@ -22,3 +22,9 @@ model Item {
   price      Decimal  @db.Decimal(10, 2)
   imagePath  String?
 }
+model User {
+  id      Int    @id @default(autoincrement())
+  userId  String @unique
+  email   String
+  name    String
+}
