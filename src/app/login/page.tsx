@@ -1,15 +1,16 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { useSearchParams } from "next/navigation";
-
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [userId, setUserId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const callbackUrl = searchParams.get('callbackUrl') || '/startScan/signInSuccess';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,12 +24,12 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        setError('Invalid User ID. Please try again.');
+        setError('Ogiltigt användar-ID. Var god försök igen.');
       } else {
-        router.push('/dashboard');
+        router.push(callbackUrl);
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+      setError('Ett oväntat fel inträffade. Var god försök igen.');
     } finally {
       setIsLoading(false);
     }
@@ -39,14 +40,14 @@ export default function SignInPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in with your User ID
+            Logga in med ditt användar-ID
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="userId" className="sr-only">
-                User ID
+                Användar-ID
               </label>
               <input
                 id="userId"
@@ -56,7 +57,7 @@ export default function SignInPage() {
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your User ID"
+                placeholder="Ange ditt användar-ID"
                 disabled={isLoading}
               />
             </div>
@@ -96,10 +97,10 @@ export default function SignInPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Signing in...
+                  Loggar in...
                 </span>
               ) : (
-                'Sign In'
+                'Logga in'
               )}
             </button>
           </div>

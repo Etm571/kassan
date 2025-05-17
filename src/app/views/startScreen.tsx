@@ -6,7 +6,7 @@ export default function SelfScanHome() {
   const router = useRouter();
 
   const handleStartScan = () => {
-    router.push("/login?callbackUrl=/scan-success");
+    router.push("/login?callbackUrl=/startScan/signInSuccess");
   };
 
   return (
