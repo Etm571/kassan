@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { DataWedge } from "capacitor-datawedge";
-import "./App.css";
-import WelcomeScreen from "./views/startScanning";
+import "../styles/scannerView.css";
+import WelcomeScreen from "./startScanning";
 
-export default function App() {
+export default function ScannerView() {
   const [items, setItems] = useState<
     { barcode: string; name: string; count: number; price?: number }[]
   >([]);
