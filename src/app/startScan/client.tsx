@@ -1,26 +1,53 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function ScanSuccessClient({ user }: { user: any }) {
+  const [assignError, setAssignError] = useState<string | null>(null);
+
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.50.169:8080");
+    const assignUser = async () => {
+      try {
+        const res = await fetch(
+          "https://f5be-94-255-179-130.ngrok-free.app/assign",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify({ user }),
+          }
+        );
 
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "start-scan", username: user.name }));
+        if (!res.ok) {
+          const error = await res.json();
+          setAssignError(error.fel || "Failed to assign scanner.");
+        } else {
+          const data = await res.json();
+          console.log("Assigned to scanner ID:", data.skickadTill);
+        }
+      } catch (err) {
+        console.error("Network error:", err);
+        setAssignError("Network error occurred while assigning scanner.");
+      }
     };
 
-    return () => {
-      ws.close();
-    };
+    assignUser();
   }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-4">Scanning Session Started</h1>
-      <p className="text-lg text-gray-600">
-        Welcome {user.name}! You're now ready to start scanning.
-      </p>
+      <h1 className="text-3xl font-bold mb-4 text-black">
+        Scanning Session Started
+      </h1>
+      {assignError ? (
+        <p className="text-lg text-red-500">{assignError}</p>
+      ) : (
+        <p className="text-lg text-gray-600">
+          Welcome {user.name}! You're now ready to start scanning.
+        </p>
+      )}
     </div>
   );
 }

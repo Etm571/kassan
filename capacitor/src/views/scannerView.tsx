@@ -39,7 +39,7 @@ export default function ScannerView() {
     const fetchAllItems = async () => {
       try {
         const response = await fetch(
-          "https://14c1-94-255-179-130.ngrok-free.app/api/items/manage",
+          "https://1345-94-255-179-130.ngrok-free.app/api/items/manage",
           { headers: { "ngrok-skip-browser-warning": "true" } }
         );
         if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
