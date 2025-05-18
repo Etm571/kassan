@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kassan
 
-## Getting Started
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-First, run the development server:
+A complete self-scanning system optimized for **Zebra MC18 Android scanners**, featuring a web management interface, dedicated scanner app, and real-time communication backend. Built to streamline retail checkout workflows using Zebra's hardware capabilities with their DataWedge API.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Overview
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+A trio of interconnected components:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Next.js WebApp**: User authentication, scanner management, and checkout system dashboard.
+- **Capacitor/React Android App**: Runs directly on Zebra MC18 scanners (Android 5.1.1, API 22 or greater) for barcode scanning.
+- **Express.js WebSocket Server**: Facilitates real-time communication between scanners and the web interface.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Project Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Web App**: Located in `/`, handles checkout and got a UI for administrators to add items, users and more.
+- **Android App**: Resides in `/capacitor`, optimized for Zebra's hardware triggers and scanning capabilities.
+- **WebSocket Server**: In `/adapter`, manages persistent connections between devices.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Key Features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Zebra MC18 Integration**
+  - Direct hardware trigger mapping
+  - Barcode scanner optimization
+  - Battery/network status monitoring
+- **Real-Time Sync**
+  - Instant scan updates via WebSocket
+  - Live inventory tracking
+- **Management Portal**
+  - Multi-user authentication
+  - Session analytics
+  - Remote scanner configuration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Requirements
+
+- **Hardware**: Zebra MC18 (Android 5.1.1)
+- **Development**:
+  - Node.js 18+
+  - Android Studio (for APK builds)
+  - Zebra OEM Config utility
+- **Production**:
+  - Persistent WebSocket server
+  - HTTPS-enabled web host
+
+---
+
+## Setup Guide
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies for all three components separately
+3. Configure environment variables for both webapp and WebSocket server
+
+### Configuration
+
+- **WebSocket Server**: Set port and allowed origins via environment variables.
+- **Android App**: Configure server endpoint in Capacitor settings (requires cleartext HTTP enablement).
+- **WebApp**: Specify WebSocket connection URL and authentication secrets.
+
+---
+
+## Operational Flow
+
+1. **Authentication**: Users log in via the Next.js web portal.
+2. **Device Pairing**: Scanners connect to the WebSocket server on startup.
+3. **Scanning**: MC18 hardware triggers initiate barcode capture.
+4. **Checkout**: Web interface aggregates scanned items for payment processing.
+5. **Monitoring**: Real-time dashboard shows active scanners and transactions.
+
+---
+
+## Compliance Notes
+
+- Requires Zebra's StageNow for enterprise deployments
+- Optimized for API 22 (Android 5.1 compatibility)
+- Uses Zebra's EMDK for hardware control
+
+---
+
+## Contribution
+
+Submit issues for feature requests or bugs. For major changes, open a discussion first to align with project direction.
+
+---
+
+## License
+
+MIT Licensed. Not affiliated with Zebra Technologies.
+
+*Zebra and MC18 are registered trademarks of Zebra Technologies Corp.*
