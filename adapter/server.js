@@ -53,7 +53,7 @@ app.post('/assign', (req, res) => {
   }
 
   try {
-    scannerWs.send(JSON.stringify({ typ: 'assign', user }))
+    scannerWs.send(JSON.stringify({ type: 'assign', user }))
     return res.json({ skickadTill: scannerId })
   } catch (err) {
     return res.status(500).json({ fel: 'Kunde inte skicka till scanner' })

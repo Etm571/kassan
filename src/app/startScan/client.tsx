@@ -9,7 +9,8 @@ export default function ScanSuccessClient({ user }: { user: any }) {
     const assignUser = async () => {
       try {
         const res = await fetch(
-          "https://f5be-94-255-179-130.ngrok-free.app/assign",
+          //8080
+          "https://6cc7-94-255-179-130.ngrok-free.app/assign",
           {
             method: "POST",
             headers: {

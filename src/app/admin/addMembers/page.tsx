@@ -3,35 +3,36 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function AddUserForm() {
+export default function AddMembers() {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
-  const [userId, setUserId] = useState('')
   const [error, setError] = useState('')
+  const [userId, setUserId] = useState('')
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setUserId('')
+  e.preventDefault()
+  setError('')
+  setUserId('')
 
-    const res = await fetch('/api/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name }),
-    })
+  const res = await fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, name }),
+  })
 
-    if (res.ok) {
-      const data = await res.json()
-      setUserId(data.userId)
-      setEmail('')
-      setName('')
-      router.refresh()
-    } else {
-      const data = await res.json()
-      setError(data.error || 'Något gick fel')
-    }
+  if (res.ok) {
+    const data = await res.json()
+    setUserId(data.userId)
+    setEmail('')
+    setName('')
+    router.refresh()
+  } else {
+    const data = await res.json()
+    setError(data.error || 'Något gick fel')
   }
+}
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

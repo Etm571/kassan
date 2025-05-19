@@ -1,12 +1,24 @@
 import { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom"
+
 import "../styles/startScanning.css";
 
 interface WelcomeScreenProps {
   message?: string;
 }
 
+interface LocationState {
+  name: string
+  userId: string
+}
+
 export default function WelcomeScreen({ message }: WelcomeScreenProps) {
   const scannerLineRef = useRef<HTMLDivElement>(null);
+
+  const location = useLocation()
+  const state = location.state as LocationState
+
+  const userName = state?.name || "Okänd användare"
 
   useEffect(() => {
     const scannerLine = scannerLineRef.current;
@@ -48,10 +60,15 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
           </div>
           <div ref={scannerLineRef} className="scanner-line"></div>
         </div>
+
+         <h2 style={{ textAlign: "center", marginTop: "1rem" }}>
+       Hej, {userName}
+      </h2>
         
         <div className="welcome-text">
           <p>{message || "Skanna en vara för att börja"}</p>
         </div>
+     
       </div>
     </div>
   );
