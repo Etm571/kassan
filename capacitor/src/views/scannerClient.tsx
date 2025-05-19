@@ -14,7 +14,7 @@ export default function ScannerClient() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const ws = new WebSocket("wss://6cc7-94-255-179-130.ngrok-free.app?ngrok-skip-browser-warning=true")
+    const ws = new WebSocket(`wss://${import.meta.env.VITE_WEBSOCKET}?ngrok-skip-browser-warning=true`)
 
     ws.onopen = () => {
       setConnected(true)

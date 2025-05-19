@@ -10,7 +10,7 @@ export default function ScanSuccessClient({ user }: { user: any }) {
       try {
         const res = await fetch(
           //8080
-          "https://6cc7-94-255-179-130.ngrok-free.app/assign",
+          `https://${process.env.NEXT_PUBLIC_WEBSOCKET}/assign`,
           {
             method: "POST",
             headers: {
