@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
-type AssignedUser = {
-  name: string
-  userId: string
-  [key: string]: any
-}
 
 export default function ScannerClient() {
   const [connected, setConnected] = useState(false)
   const [messages, setMessages] = useState<string[]>([])
-  const [assignedUser, setAssignedUser] = useState<AssignedUser | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -26,7 +20,6 @@ export default function ScannerClient() {
         const data = JSON.parse(event.data)
         if (data.type === "assign") {
           const user = data.user
-          setAssignedUser(user)
           navigate("/start-scanning", { state: { name: user.name, userId: user.userId } })
         } else {
           setMessages((prev) => [...prev, event.data])

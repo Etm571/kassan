@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { DataWedge } from "capacitor-datawedge";
 import "../styles/scannerView.css";
-import WelcomeScreen from "./startScanning";
+import { useLocation } from "react-router-dom";
 
 export default function ScannerView() {
   const [items, setItems] = useState<
@@ -14,7 +14,15 @@ export default function ScannerView() {
   const itemCache = useRef<Map<string, { name: string; price?: number }>>(
     new Map()
   );
-  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true);
+  const location = useLocation();
+  const state = location.state as {
+    userId?: string;
+    userName?: string;
+    barcode?: string;
+  };
+
+  const userId = state?.userId || "okänd-id";
+  const userName = state?.userName || "okänd användare";
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -102,10 +110,6 @@ export default function ScannerView() {
 
       const scannedCode = event.data;
 
-      if (showWelcomeScreen) {
-        setShowWelcomeScreen(false);
-      }
-
       if (showRemoveOverlay) {
         setItems((prev) => {
           const itemIndex = prev.findIndex(
@@ -146,7 +150,7 @@ export default function ScannerView() {
 
     addListener();
     return () => subscription?.remove?.();
-  }, [showRemoveOverlay, showWelcomeScreen]);
+  }, [showRemoveOverlay]);
 
   const handleCancelUnknownItem = () => {
     setShowUnknownItemPopup(false);
@@ -179,7 +183,7 @@ export default function ScannerView() {
       {showUnknownItemPopup && (
         <div className="unknown-item-popup">
           <div className="unknown-item-content">
-            <h3 className="unknown-item-title">Okänd varukod</h3>
+            <h3 className="unknown-item-title">{userId}, {userName}</h3>
             <div className="unknown-item-buttons">
               <button
                 className="unknown-item-btn unknown-item-cancel"
@@ -191,9 +195,6 @@ export default function ScannerView() {
           </div>
         </div>
       )}
-
-      {showWelcomeScreen && <WelcomeScreen />}
-
       <div className="scanned-items">
         <div className="items-scroll" ref={itemsContainerRef}>
           <div className="items-list">
