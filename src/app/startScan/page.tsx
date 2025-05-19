@@ -6,7 +6,7 @@ export default async function ScanSuccessPage() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/auth/signin");
+    redirect("/");
   }
 
   return <ScanSuccessClient user={session.user} />;
