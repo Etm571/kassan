@@ -21,6 +21,7 @@ export default function ScannerClient() {
         if (data.type === "assign") {
           const user = data.user
           navigate("/start-scanning", { state: { name: user.name, userId: user.userId } })
+          console.log(user)
         } else {
           setMessages((prev) => [...prev, event.data])
         }

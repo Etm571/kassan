@@ -21,8 +21,8 @@ export default function ScannerView() {
     barcode?: string;
   };
 
-  const userId = state?.userId || "okänd-id";
-  const userName = state?.userName || "okänd användare";
+  const userId = state?.userId || "unknown-id";
+  const userName = state?.userName || "unknown user";
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -151,6 +151,20 @@ export default function ScannerView() {
     addListener();
     return () => subscription?.remove?.();
   }, [showRemoveOverlay]);
+
+  useEffect(() => {
+  if (!state?.barcode) return;
+
+  const scannedCode = state.barcode;
+
+  if (itemCache.current.has(scannedCode)) {
+    const cached = itemCache.current.get(scannedCode)!;
+    addItem(scannedCode, cached.name, cached.price);
+  } else {
+    setShowUnknownItemPopup(true);
+  }
+}, [state?.barcode]);
+
 
   const handleCancelUnknownItem = () => {
     setShowUnknownItemPopup(false);

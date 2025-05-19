@@ -8,6 +8,8 @@ export default function ScanSuccessClient({ user }: { user: any }) {
 
   useEffect(() => {
     const assignUser = async () => {
+      console.log(user);
+
       try {
         const res = await fetch(
           `https://${process.env.NEXT_PUBLIC_WEBSOCKET}/assign`,
@@ -18,6 +20,7 @@ export default function ScanSuccessClient({ user }: { user: any }) {
               "ngrok-skip-browser-warning": "true",
             },
             body: JSON.stringify({ user }),
+            
           }
         );
 
