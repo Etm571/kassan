@@ -19,7 +19,7 @@ app.use(bodyParser.json())
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 
-const scannrar = new Map()
+const scanners = new Map()
 
 wss.on('connection', (ws, req) => {
   ws.id = uuidv4()
@@ -30,7 +30,7 @@ wss.on('connection', (ws, req) => {
       const data = JSON.parse(msg)
 
       if (data.type === 'register-scanner') {
-        scannrar.set(ws.id, ws)
+        scanners.set(ws.id, ws)
         console.log(`Scanner registrerad: ${ws.id}`)
       }
     } catch (err) {
@@ -39,14 +39,14 @@ wss.on('connection', (ws, req) => {
   })
 
   ws.on('close', () => {
-    scannrar.delete(ws.id)
+    scanners.delete(ws.id)
     console.log(`Scanner borttagen: ${ws.id}`)
   })
 })
 
 app.post('/assign', (req, res) => {
   const { user } = req.body
-  const [scannerId, scannerWs] = [...scannrar.entries()][0] || []
+  const [scannerId, scannerWs] = [...scanners.entries()][0] || []
 
   if (!scannerWs) {
     return res.status(400).json({ fel: 'Ingen scanner tillgänglig' })
