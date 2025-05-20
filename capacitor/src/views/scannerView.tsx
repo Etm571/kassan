@@ -197,7 +197,7 @@ export default function ScannerView() {
       {showUnknownItemPopup && (
         <div className="unknown-item-popup">
           <div className="unknown-item-content">
-            <h3 className="unknown-item-title">{userId}, {userName}</h3>
+            <h3 className="unknown-item-title">Varan hittades inte</h3>
             <div className="unknown-item-buttons">
               <button
                 className="unknown-item-btn unknown-item-cancel"
