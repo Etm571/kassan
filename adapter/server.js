@@ -47,6 +47,7 @@ wss.on('connection', (ws, req) => {
 app.post('/assign', (req, res) => {
   const { user } = req.body
   const [scannerId, scannerWs] = [...scanners.entries()][0] || []
+  console.log('Tilldelar användare:', user, 'till scanner:', scannerId)
 
   if (!scannerWs) {
     return res.status(400).json({ fel: 'Ingen scanner tillgänglig' })
