@@ -22,8 +22,11 @@ export default function ScannerView() {
     itemCacheEntries?: [string, { name: string; price?: number }][];
   };
 
-  const formatPrice = (price: number) =>
-    Number.isInteger(price) ? price.toString() : price.toFixed(2);
+const formatPrice = (price?: number) => {
+  if (typeof price !== "number" || isNaN(price)) return "0";
+  return Number.isInteger(price) ? price.toString() : price.toFixed(2);
+};
+
 
   //const userId = state?.userId || "unknown-id";
   //const userName = state?.userName || "unknown user";
