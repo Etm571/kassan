@@ -3,14 +3,12 @@ import { DataWedge } from "capacitor-datawedge";
 import "../styles/scannerView.css";
 import { useLocation } from "react-router-dom";
 
-
 export default function ScannerView() {
   const [items, setItems] = useState<
     { barcode: string; name: string; count: number; price?: number }[]
   >([]);
   const [showRemoveOverlay, setShowRemoveOverlay] = useState(false);
   const [showUnknownItemPopup, setShowUnknownItemPopup] = useState(false);
-  const [cacheReady, setCacheReady] = useState(false);
   const itemsContainerRef = useRef<HTMLDivElement>(null);
   const lastScannedRef = useRef<HTMLDivElement>(null);
   const itemCache = useRef<Map<string, { name: string; price?: number }>>(
@@ -21,11 +19,20 @@ export default function ScannerView() {
     userId?: string;
     userName?: string;
     barcode?: string;
-    initialCache?: [string, { name: string; price?: number }][];
+    itemCacheEntries?: [string, { name: string; price?: number }][];
   };
 
-  const userId = state?.userId || "unknown-id";
-  const userName = state?.userName || "unknown user";
+  const formatPrice = (price: number) =>
+    Number.isInteger(price) ? price.toString() : price.toFixed(2);
+
+  //const userId = state?.userId || "unknown-id";
+  //const userName = state?.userName || "unknown user";
+
+  useEffect(() => {
+    if (state?.itemCacheEntries) {
+      itemCache.current = new Map(state.itemCacheEntries);
+    }
+  }, [state?.itemCacheEntries]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -35,7 +42,6 @@ export default function ScannerView() {
       const container = itemsContainerRef.current;
 
       element.classList.add("new-item-highlight");
-
       container.scrollTop = container.scrollHeight;
 
       setTimeout(() => {
@@ -45,51 +51,6 @@ export default function ScannerView() {
 
     return () => clearTimeout(timeout);
   }, [items]);
-
-  useEffect(() => {
-
-    if (state?.initialCache) {
-      itemCache.current = new Map(state.initialCache);
-    }
-    const fetchAllItems = async () => {
-      try {
-        const response = await fetch(
-          `https://${import.meta.env.VITE_WEBAPP}/api/items/manage`,
-          {
-            headers: {
-              "ngrok-skip-browser-warning": "true",
-            },
-          }
-        );
-
-        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
-
-        const data = await response.json();
-        if (!Array.isArray(data)) throw new Error("Invalid items data");
-
-        itemCache.current.clear();
-        data.forEach((item) => {
-          if (item.barcode) {
-            itemCache.current.set(item.barcode, {
-              name: item.name || "Unknown Item",
-              price: item.price || 5,
-            });
-          }
-        });
-
-        setCacheReady(true);
-
-      } catch (error) {
-        console.error("Error fetching all items:", error);
-        setCacheReady(true);
-
-      }
-
-    };
-
-    if (!state?.initialCache) fetchAllItems();
-
-    }, [state?.initialCache]);
 
   const addItem = (barcode: string, name: string, price?: number) => {
     setItems((prev) => {
@@ -167,18 +128,16 @@ export default function ScannerView() {
   }, [showRemoveOverlay]);
 
   useEffect(() => {
-  if (!cacheReady || !state?.barcode) return;
-
+    if (!state?.barcode) return;
     const scannedCode = state.barcode;
-    
+
     if (itemCache.current.has(scannedCode)) {
       const cached = itemCache.current.get(scannedCode)!;
       addItem(scannedCode, cached.name, cached.price);
     } else {
       setShowUnknownItemPopup(true);
     }
-}, [state?.barcode]);
-
+  }, [state?.barcode]);
 
   const handleCancelUnknownItem = () => {
     setShowUnknownItemPopup(false);
@@ -211,7 +170,7 @@ export default function ScannerView() {
       {showUnknownItemPopup && (
         <div className="unknown-item-popup">
           <div className="unknown-item-content">
-            <h3 className="unknown-item-title">{userId}, {userName}</h3>
+            <h3 className="unknown-item-title">Varan hittades inte</h3>
             <div className="unknown-item-buttons">
               <button
                 className="unknown-item-btn unknown-item-cancel"
@@ -223,6 +182,7 @@ export default function ScannerView() {
           </div>
         </div>
       )}
+
       <div className="scanned-items">
         <div className="items-scroll" ref={itemsContainerRef}>
           <div className="items-list">
@@ -235,11 +195,11 @@ export default function ScannerView() {
                 <div className="item-left">
                   <div className="item-name">{item.name}</div>
                   <div className="item-details">
-                    {item.count} × {item.price} kr
+                    {item.count} × {formatPrice(item.price ?? 0)} kr
                   </div>
                 </div>
                 <div className="item-total">
-                  {item.count * (item.price ?? 0)} kr
+                  {formatPrice(item.count * (item.price ?? 0))} kr
                 </div>
               </div>
             ))}
@@ -250,7 +210,7 @@ export default function ScannerView() {
       <div className="summary-footer">
         <div className="summary-row summary-total">
           <span>{totalItems === 1 ? "1 vara" : `${totalItems} varor`}</span>
-          <span>{totalPrice} kr</span>
+          <span>{formatPrice(totalPrice)} kr</span>
         </div>
 
         <div className="removeDiv">

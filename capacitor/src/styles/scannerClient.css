@@ -1,0 +1,21 @@
+.scanner-client-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f9f9f9;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+}
+
+.welcome-text {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.status-text {
+  font-size: 1.2rem;
+  color: #888;
+}

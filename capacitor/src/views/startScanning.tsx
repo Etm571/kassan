@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom"
 import { DataWedge } from "capacitor-datawedge";
-
 import "../styles/startScanning.css";
 
 interface WelcomeScreenProps {
@@ -18,39 +17,10 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as LocationState;
+  const itemCache = useRef<Map<string, { name: string; price?: number }>>(new Map());
 
   const userName = state?.name || "Okänd användare";
   const userId = state?.userId || "";
-
-
-   const [itemCache, setItemCache] = useState<Map<string, { name: string; price?: number }>>(new Map());
-
-  useEffect(() => {
-    const fetchAllItems = async () => {
-      try {
-        const response = await fetch(
-          `https://${import.meta.env.VITE_WEBAPP}/api/items/manage`,
-          { headers: { "ngrok-skip-browser-warning": "true" } }
-        );
-        
-        const data = await response.json();
-        const newCache = new Map();
-        data.forEach((item: any) => {
-          if (item.barcode) {
-            newCache.set(item.barcode, {
-              name: item.name || "Okänd vara",
-              price: item.price || 5,
-            });
-          }
-        });
-        setItemCache(newCache);
-      } catch (error) {
-        console.error("Fel vid hämtning av varor:", error);
-      }
-    };
-
-    fetchAllItems();
-  }, []);
 
   useEffect(() => {
     const scannerLine = scannerLineRef.current;
@@ -73,33 +43,69 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
   }, []);
 
   useEffect(() => {
-    let subscription: any;
-
-    const handleScan = async (event: any) => {
-      if (!event?.data) return;
-      const scannedCode = event.data;
-
-      navigate("/scanning", {
-        state: {
-          barcode: scannedCode,
-          userId,
-          userName,
-          initialCache: Array.from(itemCache.entries())
-        }
-      });
-    };
-
-    const addListener = async () => {
+    const fetchAllItems = async () => {
       try {
-        subscription = await DataWedge.addListener("scan", handleScan);
+        const response = await fetch(
+          `https://${import.meta.env.VITE_WEBAPP}/api/items/manage`,
+          {
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          itemCache.current.clear();
+          data.forEach((item) => {
+            if (item.barcode) {
+              itemCache.current.set(item.barcode, {
+                name: item.name || "Unknown Item",
+                price: item.price || 5,
+              });
+            }
+          });
+        }
       } catch (error) {
-        console.error("DataWedge error:", error);
+        console.error("Error fetching items:", error);
       }
     };
 
-    addListener();
-    return () => subscription?.remove?.();
-  }, [navigate, userId, userName]);
+    fetchAllItems();
+  }, []);
+
+  useEffect(() => {
+  let subscription: any;
+
+  const handleScan = async (event: any) => {
+    if (!event?.data) return;
+    const scannedCode = event.data;
+
+
+    navigate("/scanning", {
+      state: {
+        barcode: scannedCode,
+        userId,
+        userName,
+        itemCacheEntries: Array.from(itemCache.current.entries())
+      }
+    });
+  };
+
+  const addListener = async () => {
+    try {
+      subscription = await DataWedge.addListener("scan", handleScan);
+    } catch (error) {
+      console.error("DataWedge error:", error);
+    }
+  };
+
+  addListener();
+  return () => subscription?.remove?.();
+}, []);
+
 
   return (
     <div className="welcome-overlay">
