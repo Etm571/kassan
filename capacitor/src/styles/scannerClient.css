@@ -1,21 +1,57 @@
+
+
+.scanner-client-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #fff;
+}
+
+.loading-icon {
+  font-size: 60px;
+  color: #888;
+  animation: spin 2s linear infinite;
+}
+
+.connected-icon {
+  font-size: 60px;
+  color: #4caf50;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 .scanner-client-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f9f9f9;
-  font-family: 'Arial', sans-serif;
+  background-color: #fff;
+  position: relative;
+}
+
+.connected-wrapper {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-text {
+  position: absolute;
+  bottom: 30px;
+  width: 100%;
   text-align: center;
-}
-
-.welcome-text {
-  font-size: 2.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.status-text {
-  font-size: 1.2rem;
-  color: #888;
+  font-size: 1.8rem;
+  font-weight: 600;
 }

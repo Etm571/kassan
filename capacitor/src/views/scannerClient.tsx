@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-
+import "../styles/scannerClient.css"
 
 export default function ScannerClient() {
   const [connected, setConnected] = useState(false)
-  const [messages, setMessages] = useState<string[]>([])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -21,40 +20,31 @@ export default function ScannerClient() {
         if (data.type === "assign") {
           const user = data.user
           navigate("/start-scanning", { state: { name: user.name, userId: user.userId } })
-          console.log(user)
-        } else {
-          setMessages((prev) => [...prev, event.data])
         }
       } catch {
-        setMessages((prev) => [...prev, event.data])
+        console.error("Failed: ", event.data)
       }
     }
 
-    ws.onclose = () => {
-      setConnected(false)
-    }
+    ws.onclose = () => setConnected(false)
+    ws.onerror = (err) => console.error("WebSocket error:", err)
 
-    ws.onerror = (err) => {
-      console.error("WebSocket error:", err)
-    }
-
-    return () => {
-      ws.close()
-    }
+    return () => ws.close()
   }, [navigate])
 
-  return (
-    <div>
-      <p>Status: {connected ? "Connected" : "Disconnected"}</p>
+return (
+  <div className="scanner-client-container">
+    {!connected ? (
+      <i className="fas fa-cogs loading-icon" />
+    ) : (
+      <>
+        <div className="connected-wrapper">
+          <i className="fas fa-circle-check connected-icon" />
+        </div>
+        <div className="footer-text">Kassan</div>
+      </>
+    )}
+  </div>
+)
 
-      <div>
-        <h3>Messages received:</h3>
-        <ul>
-          {messages.map((msg, i) => (
-            <li key={i}>{msg}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )
 }
