@@ -3,12 +3,14 @@ import { DataWedge } from "capacitor-datawedge";
 import "../styles/scannerView.css";
 import { useLocation } from "react-router-dom";
 
+
 export default function ScannerView() {
   const [items, setItems] = useState<
     { barcode: string; name: string; count: number; price?: number }[]
   >([]);
   const [showRemoveOverlay, setShowRemoveOverlay] = useState(false);
   const [showUnknownItemPopup, setShowUnknownItemPopup] = useState(false);
+  const [cacheReady, setCacheReady] = useState(false);
   const itemsContainerRef = useRef<HTMLDivElement>(null);
   const lastScannedRef = useRef<HTMLDivElement>(null);
   const itemCache = useRef<Map<string, { name: string; price?: number }>>(
@@ -19,6 +21,7 @@ export default function ScannerView() {
     userId?: string;
     userName?: string;
     barcode?: string;
+    initialCache?: [string, { name: string; price?: number }][];
   };
 
   const userId = state?.userId || "unknown-id";
@@ -44,6 +47,10 @@ export default function ScannerView() {
   }, [items]);
 
   useEffect(() => {
+
+    if (state?.initialCache) {
+      itemCache.current = new Map(state.initialCache);
+    }
     const fetchAllItems = async () => {
       try {
         const response = await fetch(
@@ -69,13 +76,20 @@ export default function ScannerView() {
             });
           }
         });
+
+        setCacheReady(true);
+
       } catch (error) {
         console.error("Error fetching all items:", error);
+        setCacheReady(true);
+
       }
+
     };
 
-    fetchAllItems();
-  }, []);
+    if (!state?.initialCache) fetchAllItems();
+
+    }, [state?.initialCache]);
 
   const addItem = (barcode: string, name: string, price?: number) => {
     setItems((prev) => {
@@ -153,16 +167,16 @@ export default function ScannerView() {
   }, [showRemoveOverlay]);
 
   useEffect(() => {
-  if (!state?.barcode) return;
+  if (!cacheReady || !state?.barcode) return;
 
-  const scannedCode = state.barcode;
-
-  if (itemCache.current.has(scannedCode)) {
-    const cached = itemCache.current.get(scannedCode)!;
-    addItem(scannedCode, cached.name, cached.price);
-  } else {
-    setShowUnknownItemPopup(true);
-  }
+    const scannedCode = state.barcode;
+    
+    if (itemCache.current.has(scannedCode)) {
+      const cached = itemCache.current.get(scannedCode)!;
+      addItem(scannedCode, cached.name, cached.price);
+    } else {
+      setShowUnknownItemPopup(true);
+    }
 }, [state?.barcode]);
 
 
@@ -197,7 +211,7 @@ export default function ScannerView() {
       {showUnknownItemPopup && (
         <div className="unknown-item-popup">
           <div className="unknown-item-content">
-            <h3 className="unknown-item-title">Varan hittades inte</h3>
+            <h3 className="unknown-item-title">{userId}, {userName}</h3>
             <div className="unknown-item-buttons">
               <button
                 className="unknown-item-btn unknown-item-cancel"

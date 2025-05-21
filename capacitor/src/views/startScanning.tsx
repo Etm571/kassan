@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom"
 import { DataWedge } from "capacitor-datawedge";
 
@@ -21,6 +21,36 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
 
   const userName = state?.name || "Okänd användare";
   const userId = state?.userId || "";
+
+
+   const [itemCache, setItemCache] = useState<Map<string, { name: string; price?: number }>>(new Map());
+
+  useEffect(() => {
+    const fetchAllItems = async () => {
+      try {
+        const response = await fetch(
+          `https://${import.meta.env.VITE_WEBAPP}/api/items/manage`,
+          { headers: { "ngrok-skip-browser-warning": "true" } }
+        );
+        
+        const data = await response.json();
+        const newCache = new Map();
+        data.forEach((item: any) => {
+          if (item.barcode) {
+            newCache.set(item.barcode, {
+              name: item.name || "Okänd vara",
+              price: item.price || 5,
+            });
+          }
+        });
+        setItemCache(newCache);
+      } catch (error) {
+        console.error("Fel vid hämtning av varor:", error);
+      }
+    };
+
+    fetchAllItems();
+  }, []);
 
   useEffect(() => {
     const scannerLine = scannerLineRef.current;
@@ -53,7 +83,8 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
         state: {
           barcode: scannedCode,
           userId,
-          userName
+          userName,
+          initialCache: Array.from(itemCache.entries())
         }
       });
     };
