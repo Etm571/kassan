@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { DataWedge } from "capacitor-datawedge";
 import "../styles/scannerView.css";
 import { useLocation } from "react-router-dom";
+import { handleScan as createHandleScan } from "../utils/handleScan";
 
 export default function ScannerView() {
   const [items, setItems] = useState<
@@ -22,11 +23,10 @@ export default function ScannerView() {
     itemCacheEntries?: [string, { name: string; price?: number }][];
   };
 
-const formatPrice = (price?: number) => {
-  if (typeof price !== "number" || isNaN(price)) return "0";
-  return Number.isInteger(price) ? price.toString() : price.toFixed(2);
-};
-
+  const formatPrice = (price?: number) => {
+    if (typeof price !== "number" || isNaN(price)) return "0";
+    return Number.isInteger(price) ? price.toString() : price.toFixed(2);
+  };
 
   //const userId = state?.userId || "unknown-id";
   //const userName = state?.userName || "unknown user";
@@ -83,44 +83,18 @@ const formatPrice = (price?: number) => {
   useEffect(() => {
     let subscription: any;
 
-    const handleScan = async (event: any) => {
-      if (!event?.data) return;
-
-      const scannedCode = event.data;
-
-      if (showRemoveOverlay) {
-        setItems((prev) => {
-          const itemIndex = prev.findIndex(
-            (item) => item.barcode === scannedCode
-          );
-          if (itemIndex === -1) return prev;
-
-          const newItems = [...prev];
-          if (newItems[itemIndex].count > 1) {
-            newItems[itemIndex] = {
-              ...newItems[itemIndex],
-              count: newItems[itemIndex].count - 1,
-            };
-          } else {
-            newItems.splice(itemIndex, 1);
-          }
-          return newItems;
-        });
-        setShowRemoveOverlay(false);
-        return;
-      }
-
-      if (itemCache.current.has(scannedCode)) {
-        const cached = itemCache.current.get(scannedCode)!;
-        addItem(scannedCode, cached.name, cached.price);
-        return;
-      }
-      setShowUnknownItemPopup(true);
-    };
+    const scanHandler = createHandleScan({
+      showRemoveOverlay,
+      setItems,
+      setShowRemoveOverlay,
+      itemCache,
+      addItem,
+      setShowUnknownItemPopup,
+    });
 
     const addListener = async () => {
       try {
-        subscription = await DataWedge.addListener("scan", handleScan);
+        subscription = await DataWedge.addListener("scan", scanHandler);
       } catch (error) {
         console.error("DataWedge error:", error);
       }
