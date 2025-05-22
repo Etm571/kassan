@@ -15,16 +15,19 @@ datasource db {
 }
 
 model Item {
-  id         Int      @id @default(autoincrement())
-  name       String   @unique
-  barcode    String   @unique
-  createdAt  DateTime @default(now())
-  price      Decimal  @db.Decimal(10, 2)
-  imagePath  String?
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  barcode   String   @unique
+  createdAt DateTime @default(now())
+  price     Decimal  @db.Decimal(10, 2)
+  imagePath String?
 }
+
 model User {
-  id      Int    @id @default(autoincrement())
-  userId  String @unique
-  email   String
-  name    String
+  id          Int      @id @default(autoincrement())
+  userId      String   @unique
+  email       String
+  token       String?
+  tokenExpiry DateTime?
+  name        String
 }

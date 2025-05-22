@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth";
 import { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/app/lib/prisma";
+import crypto from "crypto";
+
 
 function patchPrismaAdapter(adapter: any) {
     return {
