@@ -4,7 +4,7 @@ interface HandleScanDeps {
   showRemoveOverlay: boolean;
   setItems: React.Dispatch<React.SetStateAction<Item[]>>;
   setShowRemoveOverlay: React.Dispatch<React.SetStateAction<boolean>>;
-  itemCache: React.MutableRefObject<Map<string, { name: string; price?: number }>>;
+  itemCache: React.RefObject<Map<string, { name: string; price?: number }>>;
   addItem: (barcode: string, name: string, price?: number) => void;
   setShowUnknownItemPopup: React.Dispatch<React.SetStateAction<boolean>>;
   getItems: () => Item[];

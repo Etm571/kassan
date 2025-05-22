@@ -100,6 +100,7 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
     });
   };
 
+  
   const addListener = async () => {
     try {
       subscription = await DataWedge.addListener("scan", handleScan);
@@ -111,6 +112,7 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
   addListener();
   return () => subscription?.remove?.();
 }, []);
+
 
 
   return (
@@ -141,6 +143,7 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
         <div className="welcome-text">
           <p>{message || "Skanna en vara för att börja"}</p>
         </div>
+
       </div>
     </div>
   );

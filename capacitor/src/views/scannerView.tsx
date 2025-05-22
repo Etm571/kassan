@@ -107,6 +107,8 @@ export default function ScannerView() {
     return () => subscription?.remove?.();
   }, [showRemoveOverlay]);
 
+
+
   useEffect(() => {
     if (!state?.barcode) return;
     const scannedCode = state.barcode;
@@ -200,6 +202,12 @@ export default function ScannerView() {
             disabled={items.length === 0}
           >
             Ta bort vara
+          </button>
+          <button
+            className="send-btn"
+            disabled={items.length === 0}
+          >
+            Skicka varor
           </button>
         </div>
       </div>
