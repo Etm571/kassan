@@ -90,8 +90,8 @@ export default function ScannerView() {
       itemCache,
       addItem,
       setShowUnknownItemPopup,
+      getItems: () => items,
     });
-
     const addListener = async () => {
       try {
         subscription = await DataWedge.addListener("scan", scanHandler);

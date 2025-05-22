@@ -1,4 +1,4 @@
-type Item = { barcode: string; name: string; count: number; price?: number };
+import type { Item } from "../types/types";
 
 interface HandleScanDeps {
   showRemoveOverlay: boolean;
@@ -7,6 +7,7 @@ interface HandleScanDeps {
   itemCache: React.MutableRefObject<Map<string, { name: string; price?: number }>>;
   addItem: (barcode: string, name: string, price?: number) => void;
   setShowUnknownItemPopup: React.Dispatch<React.SetStateAction<boolean>>;
+  getItems: () => Item[];
 }
 
 export const handleScan = ({
@@ -16,14 +17,26 @@ export const handleScan = ({
   itemCache,
   addItem,
   setShowUnknownItemPopup,
+  getItems,
 }: HandleScanDeps) => async (event: any) => {
   if (!event?.data) return;
 
   const scannedCode = event.data;
 
   if (scannedCode === "2980000000003") {
-    alert("2980000000003");
-
+    const itemsToSend = getItems();
+    try {
+      await fetch("/api/items", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(itemsToSend),
+      });
+    } catch (error) {
+      console.error("Fel vid sändning av varor:", error);
+    }
+    return;
   }
 
   if (showRemoveOverlay) {
