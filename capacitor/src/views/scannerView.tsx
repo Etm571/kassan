@@ -203,12 +203,6 @@ export default function ScannerView() {
           >
             Ta bort vara
           </button>
-          <button
-            className="send-btn"
-            disabled={items.length === 0}
-          >
-            Skicka varor
-          </button>
         </div>
       </div>
     </div>
