@@ -19,7 +19,7 @@ export default function ScannerClient() {
         const data = JSON.parse(event.data)
         if (data.type === "assign") {
           const user = data.user
-          navigate("/start-scanning", { state: { name: user.name, userId: user.userId } })
+          navigate("/start-scanning", { state: { name: user.name, userId: user.userId, token: user.token} })
         }
       } catch {
         console.error("Failed: ", event.data)

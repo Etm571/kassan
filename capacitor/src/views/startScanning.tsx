@@ -10,6 +10,7 @@ interface WelcomeScreenProps {
 interface LocationState {
   name: string;
   userId: string;
+  token: string;
 }
 
 export default function WelcomeScreen({ message }: WelcomeScreenProps) {
@@ -19,8 +20,12 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
   const state = location.state as LocationState;
   const itemCache = useRef<Map<string, { name: string; price?: number }>>(new Map());
 
-  const userName = state?.name || "Okänd användare";
-  const userId = state?.userId || "";
+  const user = {
+    id: state?.userId || "",
+    token: state?.token || "",
+    name: state?.name || "Okänd användare"
+
+  }
 
   useEffect(() => {
     const scannerLine = scannerLineRef.current;
@@ -87,8 +92,9 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
     navigate("/scanning", {
       state: {
         barcode: scannedCode,
-        userId,
-        userName,
+        username: user.name,
+        userId: user.id,
+        token: user.token,
         itemCacheEntries: Array.from(itemCache.current.entries())
       }
     });
@@ -129,7 +135,7 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
         </div>
 
         <h2 style={{ textAlign: "center", marginTop: "1rem" }}>
-          Hej, {userName}
+          Hej, {user.name}!
         </h2>
 
         <div className="welcome-text">
