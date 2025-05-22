@@ -19,6 +19,7 @@ export default function ScannerView() {
   const state = location.state as {
     userId?: string;
     userName?: string;
+    token?: string;
     barcode?: string;
     itemCacheEntries?: [string, { name: string; price?: number }][];
   };
@@ -91,6 +92,8 @@ export default function ScannerView() {
       addItem,
       setShowUnknownItemPopup,
       getItems: () => items,
+      userId: state?.userId || "unknown-id",
+      token: state?.token || "unknown-token",
     });
     const addListener = async () => {
       try {

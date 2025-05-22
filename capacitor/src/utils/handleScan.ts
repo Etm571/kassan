@@ -8,6 +8,8 @@ interface HandleScanDeps {
   addItem: (barcode: string, name: string, price?: number) => void;
   setShowUnknownItemPopup: React.Dispatch<React.SetStateAction<boolean>>;
   getItems: () => Item[];
+  token: string;
+  userId: string;
 }
 
 export const handleScan = ({
@@ -18,6 +20,8 @@ export const handleScan = ({
   addItem,
   setShowUnknownItemPopup,
   getItems,
+  userId,
+  token
 }: HandleScanDeps) => async (event: any) => {
   if (!event?.data) return;
 
@@ -26,16 +30,21 @@ export const handleScan = ({
   if (scannedCode === "2980000000003") {
     const itemsToSend = getItems();
     try {
-      await fetch("/api/items", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(itemsToSend),
-      });
-    } catch (error) {
-      console.error("Fel vid sändning av varor:", error);
-    }
+    await fetch("/api/items", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        items: itemsToSend,
+        userId,
+        token,
+      }),
+
+    });
+  } catch (error) {
+    console.error("Fel vid sändning av varor:", error);
+  }
     return;
   }
 

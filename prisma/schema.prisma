@@ -14,20 +14,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Item {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  barcode   String   @unique
-  createdAt DateTime @default(now())
-  price     Decimal  @db.Decimal(10, 2)
-  imagePath String?
-}
-
 model User {
-  id          Int      @id @default(autoincrement())
-  userId      String   @unique
+  id          Int           @id @default(autoincrement())
+  userId      String        @unique
   email       String
+  name        String
   token       String?
   tokenExpiry DateTime?
+  scannedItems ScannedItem[]
+}
+
+model Item {
+  id          Int           @id @default(autoincrement())
   name        String
+  barcode     String        @unique
+  price       Decimal       @db.Decimal(10, 2)
+  imagePath   String?
+
+  scannedItems ScannedItem[]
+}
+
+
+model ScannedItem {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  item      Item      @relation(fields: [itemId], references: [id])
+  itemId    Int
+  quantity  Int       @default(1)
+  createdAt DateTime  @default(now())
 }
