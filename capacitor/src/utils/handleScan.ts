@@ -23,14 +23,14 @@ export const handleScan = ({
   userId,
   token
 }: HandleScanDeps) => async (event: any) => {
-  if (!event?.data) return;
 
-  const scannedCode = event.data;
+
+  const scannedCode = event.data || event.barcode;
 
   if (scannedCode === "2980000000003") {
     const itemsToSend = getItems();
     try {
-    await fetch("/api/items", {
+    await fetch(`https://${import.meta.env.VITE_WEBAPP}?ngrok-skip-browser-warning=true`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -73,5 +73,6 @@ export const handleScan = ({
     addItem(scannedCode, cached.name, cached.price);
     return;
   }
+
   setShowUnknownItemPopup(true);
 };

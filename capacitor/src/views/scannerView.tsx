@@ -81,10 +81,7 @@ export default function ScannerView() {
     });
   };
 
-  useEffect(() => {
-    let subscription: any;
-
-    const scanHandler = createHandleScan({
+  const scanHandler = createHandleScan({
       showRemoveOverlay,
       setItems,
       setShowRemoveOverlay,
@@ -94,7 +91,19 @@ export default function ScannerView() {
       getItems: () => items,
       userId: state?.userId || "unknown-id",
       token: state?.token || "unknown-token",
-    });
+  });
+
+   const simulateScan = () => {
+      const barcode = "2980000000003";
+
+      scanHandler({ barcode });
+    };
+
+   
+  useEffect(() => {
+    let subscription: any;
+
+
     const addListener = async () => {
       try {
         subscription = await DataWedge.addListener("scan", scanHandler);
@@ -203,6 +212,10 @@ export default function ScannerView() {
           >
             Ta bort vara
           </button>
+
+           <button onClick={simulateScan} style={{ margin: "1em" }}>
+        Simulera skanning
+      </button>
         </div>
       </div>
     </div>

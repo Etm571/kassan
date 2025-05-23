@@ -100,6 +100,8 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
     });
   };
 
+ 
+
   
   const addListener = async () => {
     try {
@@ -113,7 +115,20 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
   return () => subscription?.remove?.();
 }, []);
 
+ const debugScan = async () => {
+    const scannedCode = "1000";
 
+
+    navigate("/scanning", {
+      state: {
+        barcode: scannedCode,
+        username: user.name,
+        userId: user.id,
+        token: user.token,
+        itemCacheEntries: Array.from(itemCache.current.entries())
+      }
+    });
+  };
 
   return (
     <div className="welcome-overlay">
@@ -143,6 +158,14 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
         <div className="welcome-text">
           <p>{message || "Skanna en vara för att börja"}</p>
         </div>
+
+        <button
+          className="start-button"
+          onClick={debugScan}
+        >
+          Debug Scan
+        </button>
+      
 
       </div>
     </div>

@@ -1,41 +1,68 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from "@/app/lib/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, ngrok-skip-browser-warning',
+}
 
+export function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: corsHeaders
+  })
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const { items, userId, token } = req.body;
+    const body = await req.json();
+    const { items, userId, token } = body;
 
     if (!items || !userId || !token) {
-      return res.status(400).json({ error: "Missing fields" });
+      return NextResponse.json(
+        { error: "Missing fields" },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
     const user = await prisma.user.findUnique({ where: { userId } });
 
     if (!user || user.token !== token) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: corsHeaders }
+      );
     }
 
     if (user.tokenExpiry && user.tokenExpiry < new Date()) {
-      return res.status(403).json({ error: "Token expired" });
+      return NextResponse.json(
+        { error: "Token expired" },
+        { status: 403, headers: corsHeaders }
+      );
     }
 
     if (!Array.isArray(items)) {
-      return res.status(400).json({ error: "Items must be an array" });
+      return NextResponse.json(
+        { error: "Items must be an array" },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
     for (const scanned of items) {
       if (!scanned.barcode) {
-        return res.status(400).json({ error: "Each item must have barcode" });
+        return NextResponse.json(
+          { error: "Each item must have barcode" },
+          { status: 400, headers: corsHeaders }
+        );
       }
 
       const item = await prisma.item.findUnique({ where: { barcode: scanned.barcode } });
 
       if (!item) {
-        return res.status(404).json({ error: `Item not found: ${scanned.barcode}` });
+        return NextResponse.json(
+          { error: `Item not found: ${scanned.barcode}` },
+          { status: 404, headers: corsHeaders }
+        );
       }
 
       await prisma.scannedItem.create({
@@ -47,10 +74,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    return res.status(200).json({ success: true });
+    return NextResponse.json(
+      { success: true },
+      { status: 200, headers: corsHeaders }
+    );
 
   } catch (error) {
     console.error("Error saving scanned items:", error);
-    return res.status(500).json({ error: "Server error" });
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
