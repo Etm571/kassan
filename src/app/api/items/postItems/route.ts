@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: user.id,
           itemId: item.id,
-          quantity: scanned.quantity || 1,
+          quantity: scanned.count || 1,
         }
       });
     }
