@@ -16,6 +16,8 @@ export default function ScannerView() {
     new Map()
   );
   const [scanLog, setScanLog] = useState<string[]>([]);
+  const [clickCount, setClickCount] = useState(0);
+  const [showLog, setShowLog] = useState(false);
 
   const location = useLocation();
   const state = location.state as {
@@ -31,6 +33,19 @@ export default function ScannerView() {
     return Number.isInteger(price) ? price.toString() : price.toFixed(2);
   };
 
+  const handleSummaryClick = () => {
+    setClickCount((prev) => {
+      const next = prev + 1;
+      if (next >= 7) {
+        setShowLog(true);
+        setTimeout(() => {
+          setShowLog(false);
+          setClickCount(0);
+        }, 10000);
+      }
+      return next;
+    });
+  };
   //const userId = state?.userId || "unknown-id";
   //const userName = state?.userName || "unknown user";
 
@@ -83,21 +98,18 @@ export default function ScannerView() {
     });
   };
 
- const scanHandler = createHandleScan({
-  showRemoveOverlay,
-  setItems,
-  setShowRemoveOverlay,
-  itemCache,
-  addItem,
-  setShowUnknownItemPopup,
-  getItems: () => itemsRef.current,
-  userId: state?.userId || "unknown-id",
-  token: state?.token || "unknown-token",
-  log: (msg: string) => setScanLog((prev) => [...prev, msg]), // Add this line
-
-  
-});
-
+  const scanHandler = createHandleScan({
+    showRemoveOverlay,
+    setItems,
+    setShowRemoveOverlay,
+    itemCache,
+    addItem,
+    setShowUnknownItemPopup,
+    getItems: () => itemsRef.current,
+    userId: state?.userId || "unknown-id",
+    token: state?.token || "unknown-token",
+    log: (msg: string) => setScanLog((prev) => [...prev, msg]),
+  });
 
   const simulateScan = () => {
     const barcode = "2980000000003";
@@ -182,7 +194,6 @@ export default function ScannerView() {
       )}
 
       <div className="scanned-items">
-        
         <div className="items-scroll" ref={itemsContainerRef}>
           <div className="items-list">
             {items.map((item, index) => (
@@ -203,14 +214,11 @@ export default function ScannerView() {
               </div>
             ))}
           </div>
-          
         </div>
       </div>
 
-
-
       <div className="summary-footer">
-        <div className="summary-row summary-total">
+        <div className="summary-row summary-total" onClick={handleSummaryClick}>
           <span>{totalItems === 1 ? "1 vara" : `${totalItems} varor`}</span>
           <span>{formatPrice(totalPrice)} kr</span>
         </div>
@@ -228,14 +236,25 @@ export default function ScannerView() {
             Simulera skanning
           </button>
         </div>
-              <div className="scan-log">
-  <h4>Scan Log</h4>
-  <div style={{ maxHeight: 120, overflowY: "auto", background: "#222", color: "#fff", fontSize: 12, padding: 8 }}>
-    {scanLog.slice(-10).map((msg, i) => (
-      <div key={i}>{msg}</div>
-    ))}
-  </div>
-</div>
+        {showLog && (
+          <div className="scan-log">
+            <h4>Scan Log</h4>
+            <div
+              style={{
+                maxHeight: 120,
+                overflowY: "auto",
+                background: "#222",
+                color: "#fff",
+                fontSize: 12,
+                padding: 8,
+              }}
+            >
+              {scanLog.slice(-10).map((msg, i) => (
+                <div key={i}>{msg}</div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
