@@ -30,7 +30,7 @@ export const handleScan = ({
   if (scannedCode === "2980000000003") {
     const itemsToSend = getItems();
     try {
-    await fetch(`https://${import.meta.env.VITE_WEBAPP}?ngrok-skip-browser-warning=true`, {
+    await fetch(`https://${import.meta.env.VITE_WEBAPP}/api/items/postItems?ngrok-skip-browser-warning=true`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
