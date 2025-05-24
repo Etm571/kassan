@@ -15,6 +15,8 @@ export default function ScannerView() {
   const itemCache = useRef<Map<string, { name: string; price?: number }>>(
     new Map()
   );
+  const [scanLog, setScanLog] = useState<string[]>([]);
+
   const location = useLocation();
   const state = location.state as {
     userId?: string;
@@ -81,28 +83,30 @@ export default function ScannerView() {
     });
   };
 
-  const scanHandler = createHandleScan({
-      showRemoveOverlay,
-      setItems,
-      setShowRemoveOverlay,
-      itemCache,
-      addItem,
-      setShowUnknownItemPopup,
-      getItems: () => items,
-      userId: state?.userId || "unknown-id",
-      token: state?.token || "unknown-token",
-  });
+ const scanHandler = createHandleScan({
+  showRemoveOverlay,
+  setItems,
+  setShowRemoveOverlay,
+  itemCache,
+  addItem,
+  setShowUnknownItemPopup,
+  getItems: () => itemsRef.current,
+  userId: state?.userId || "unknown-id",
+  token: state?.token || "unknown-token",
+  log: (msg: string) => setScanLog((prev) => [...prev, msg]), // Add this line
 
-   const simulateScan = () => {
-      const barcode = "2980000000003";
+  
+});
 
-      scanHandler({ barcode });
-    };
 
-   
+  const simulateScan = () => {
+    const barcode = "2980000000003";
+
+    scanHandler({ barcode });
+  };
+
   useEffect(() => {
     let subscription: any;
-
 
     const addListener = async () => {
       try {
@@ -116,8 +120,6 @@ export default function ScannerView() {
     return () => subscription?.remove?.();
   }, [showRemoveOverlay]);
 
-
-
   useEffect(() => {
     if (!state?.barcode) return;
     const scannedCode = state.barcode;
@@ -129,6 +131,11 @@ export default function ScannerView() {
       setShowUnknownItemPopup(true);
     }
   }, [state?.barcode]);
+
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const handleCancelUnknownItem = () => {
     setShowUnknownItemPopup(false);
@@ -175,6 +182,7 @@ export default function ScannerView() {
       )}
 
       <div className="scanned-items">
+        
         <div className="items-scroll" ref={itemsContainerRef}>
           <div className="items-list">
             {items.map((item, index) => (
@@ -195,8 +203,11 @@ export default function ScannerView() {
               </div>
             ))}
           </div>
+          
         </div>
       </div>
+
+
 
       <div className="summary-footer">
         <div className="summary-row summary-total">
@@ -213,10 +224,18 @@ export default function ScannerView() {
             Ta bort vara
           </button>
 
-           <button onClick={simulateScan} style={{ margin: "1em" }}>
-        Simulera skanning
-      </button>
+          <button onClick={simulateScan} style={{ margin: "1em" }}>
+            Simulera skanning
+          </button>
         </div>
+              <div className="scan-log">
+  <h4>Scan Log</h4>
+  <div style={{ maxHeight: 120, overflowY: "auto", background: "#222", color: "#fff", fontSize: 12, padding: 8 }}>
+    {scanLog.slice(-10).map((msg, i) => (
+      <div key={i}>{msg}</div>
+    ))}
+  </div>
+</div>
       </div>
     </div>
   );

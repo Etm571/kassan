@@ -17,6 +17,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { items, userId, token } = body;
+    console.log("Received items:", items);
+    console.log("User ID:", userId);
+    console.log("Token:", token);
 
     if (!items || !userId || !token) {
       return NextResponse.json(
