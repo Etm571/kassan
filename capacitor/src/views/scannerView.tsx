@@ -16,7 +16,7 @@ export default function ScannerView() {
     new Map()
   );
   const [scanLog, setScanLog] = useState<string[]>([]);
-  const [clickCount, setClickCount] = useState(0);
+  const clickCountRef = useRef(0);
   const [showLog, setShowLog] = useState(false);
 
   const location = useLocation();
@@ -33,19 +33,17 @@ export default function ScannerView() {
     return Number.isInteger(price) ? price.toString() : price.toFixed(2);
   };
 
-  const handleSummaryClick = () => {
-    setClickCount((prev) => {
-      const next = prev + 1;
-      if (next >= 7) {
-        setShowLog(true);
-        setTimeout(() => {
-          setShowLog(false);
-          setClickCount(0);
-        }, 10000);
-      }
-      return next;
-    });
-  };
+ const handleSummaryClick = () => {
+  clickCountRef.current += 1;
+  if (clickCountRef.current >= 7) {
+    setShowLog(true);
+    clickCountRef.current = 0;
+    setTimeout(() => {
+      setShowLog(false);
+    }, 10000);
+  }
+};
+
   //const userId = state?.userId || "unknown-id";
   //const userName = state?.userName || "unknown user";
 
