@@ -205,9 +205,9 @@ export default function ScannerView() {
               >
                 <div className="item-left">
                   <div className="item-name">{item.name}</div>
-                  <div className="item-details">
-                    {item.count} × {formatPrice(item.price ?? 0)} kr
-                  </div>
+                    <div className="item-details">
+                    {item.count} × {formatPrice(Number(item.price))} kr
+                    </div>
                 </div>
                 <div className="item-total">
                   {formatPrice(item.count * (item.price ?? 0))} kr
