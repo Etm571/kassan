@@ -101,3 +101,8 @@
   color: red;
   margin: 5px 0;
 }
+
+.settings-container .back-button {
+  background-color: #6c757d;
+  margin-top: 10px;
+}
