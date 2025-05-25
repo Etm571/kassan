@@ -4,6 +4,7 @@ import { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/app/lib/prisma";
 import crypto from "crypto";
+import { Underdog } from "next/font/google";
 
 declare module "next-auth" {
   interface Session {
@@ -52,6 +53,8 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!user) return null;
+          if (user.token) throw new Error("Scaning session already started!");
+
 
           const generatedToken = crypto.randomBytes(16).toString("hex");
 
