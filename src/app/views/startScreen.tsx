@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation";
 export default function SelfScanHome() {
   const router = useRouter();
 
-  const handleStartScan = () => {
-    router.push("/login?callbackUrl=/startScan");
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
@@ -17,14 +14,17 @@ export default function SelfScanHome() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl">
         <button 
-          onClick={handleStartScan}
+          onClick={() => router.push("/login?callbackUrl=/startScan")}
           className="flex flex-col items-center justify-center p-8 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-xl transition duration-200 h-full"
         >
           <QrCodeIcon className="h-16 w-16 mb-4" />
-          <span className="font-bold text-2xl">Starta scanna</span>
+          <span className="font-bold text-2xl">Starta scanning</span>
         </button>
 
-        <button className="flex flex-col items-center justify-center p-8 bg-green-600 hover:bg-green-700 text-white rounded-2xl shadow-xl transition duration-200 h-full">
+        <button 
+        className="flex flex-col items-center justify-center p-8 bg-green-600 hover:bg-green-700 text-white rounded-2xl shadow-xl transition duration-200 h-full"
+        onClick={() => router.push("/login?callbackUrl=/stopScan")}
+        >
           <CheckCircleIcon className="h-16 w-16 mb-4" />
           <span className="font-bold text-2xl">Avsluta scanning</span>
         </button>
