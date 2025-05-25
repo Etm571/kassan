@@ -11,6 +11,7 @@ interface HandleScanDeps {
   token: string;
   userId: string;
   log?: (msg: string) => void;
+  navigate: () => void;
 }
 
 export const handleScan =
@@ -25,6 +26,7 @@ export const handleScan =
     userId,
     token,
     log,
+    navigate,
   }: HandleScanDeps) =>
   async (event: any) => {
     log?.(`Scan event: ${JSON.stringify(event)}`);
@@ -52,6 +54,7 @@ export const handleScan =
           }
         );
         log?.("Varor skickade!");
+        navigate();
       } catch (error) {
         log?.(`Fel: ${error}`);
       }

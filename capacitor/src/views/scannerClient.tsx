@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/scannerClient.css";
-import { Dialog } from "@capacitor/dialog";
-
 
 export default function ScannerClient() {
   const [connected, setConnected] = useState(false);
@@ -10,9 +8,8 @@ export default function ScannerClient() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedWebsocket = localStorage.getItem("websocketUrl") || import.meta.env.VITE_WEBSOCKET
-    const ws = new WebSocket(`wss://${storedWebsocket}?ngrok-skip-browser-warning=true`)
-
+    const storedWebsocket = localStorage.getItem("websocketUrl") || import.meta.env.VITE_WEBSOCKET;
+    const ws = new WebSocket(`wss://${storedWebsocket}?ngrok-skip-browser-warning=true`);
 
     ws.onopen = () => {
       setConnected(true);
@@ -38,6 +35,7 @@ export default function ScannerClient() {
 
     return () => ws.close();
   }, [navigate]);
+
   const handleScreenTap = async () => {
     const newCount = tapCount + 1;
     setTapCount(newCount);
@@ -49,18 +47,16 @@ export default function ScannerClient() {
     if (newCount >= 7) {
       setTapCount(0);
       clearTimeout(timer);
-      const { value, cancelled } = await Dialog.prompt({
-        title: "Admin PIN Required",
-        message: "Enter PIN",
-      });
 
-      if (cancelled) return;
-      const correctPin = localStorage.getItem("adminPin") || import.meta.env.VITE_ADMIN_PIN
+      const value = window.prompt("Enter PIN:");
+      if (value === null) return;
+
+      const correctPin = localStorage.getItem("adminPin") || import.meta.env.VITE_ADMIN_PIN;
 
       if (value === correctPin) {
         navigate("/settings");
-      } else if (value !== null) {
-        await Dialog.alert({ title: "Error", message: "Invalid PIN" });
+      } else {
+        window.alert("Wrong PIN");
       }
     }
   };

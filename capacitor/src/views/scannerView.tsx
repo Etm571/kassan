@@ -107,6 +107,9 @@ export default function ScannerView() {
     userId: state?.userId || "unknown-id",
     token: state?.token || "unknown-token",
     log: (msg: string) => setScanLog((prev) => [...prev, msg]),
+    navigate: () => {
+      window.location.href = "/";
+    },
   });
 
   const simulateScan = () => {
