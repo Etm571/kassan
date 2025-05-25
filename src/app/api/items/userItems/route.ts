@@ -129,3 +129,50 @@ export async function GET(req: NextRequest) {
     { status: 200, headers: corsHeaders }
   );
 }
+
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+    const token = searchParams.get("token");
+
+    if (!userId || !token) {
+      return NextResponse.json(
+        { error: "Missing userId or token" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const user = await prisma.user.findUnique({ where: { userId } });
+
+    if (!user || user.token !== token) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    if (user.tokenExpiry && user.tokenExpiry < new Date()) {
+      return NextResponse.json(
+        { error: "Token expired" },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
+    await prisma.scannedItem.deleteMany({
+      where: { userId: user.id }
+    });
+
+    return NextResponse.json(
+      { success: true },
+      { status: 200, headers: corsHeaders }
+    );
+  } catch (error) {
+    console.error("Error deleting scanned items:", error);
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}

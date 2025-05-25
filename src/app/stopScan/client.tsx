@@ -1,92 +1,160 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
+
 
 export default function StopScan({ user }: { user: any }) {
-  const [items, setItems] = useState<any[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
+  const router = useRouter();
+  const [items, setItems] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const res = await fetch(`/api/items/userItems?userId=${user.userId}&token=${user.token}`)
-        const data = await res.json()
+        const res = await fetch(
+          `/api/items/userItems?userId=${user.userId}&token=${user.token}`
+        );
+        const data = await res.json();
 
         if (!res.ok) {
-          setError(data.error || "Ett fel inträffade")
+          setError(data.error || "Ett fel inträffade");
         } else {
-          setItems(data.items)
+          setItems(data.items);
         }
       } catch {
-        setError("Kunde inte hämta data")
+        setError("Kunde inte hämta data");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
+    };
+
+    fetchItems();
+  }, [user.userId, user.token]);
+
+  const totalPrice = items.reduce(
+    (sum, item) => sum + item.item.price * item.quantity,
+    0
+  );
+
+  const handleConfirmAndPay = async () => {
+  try {
+    const res = await fetch(`/api/items/userItems?userId=${user.userId}&token=${user.token}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Något gick fel vid betalning.");
+    } else {
+      alert("Betalning genomförd!");
+      setItems([]);
+      router.push('/');
+
     }
+  } catch (err) {
+    alert("Kunde inte genomföra betalning.");
+  }
+};
 
-    fetchItems()
-  }, [user.userId, user.token])
 
-  const totalPrice = items.reduce((sum, item) => sum + (item.item.price * item.quantity), 0)
-
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="text-gray-600 mt-4">Hämtar dina skannade varor...</p>
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-600 mt-4">Hämtar dina skannade varor...</p>
+        </div>
       </div>
-    </div>
-  )
+    );
 
-  if (error) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="text-center p-6 bg-red-50 rounded-lg max-w-md">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h2 className="text-xl font-medium text-red-600 mt-4">Ett fel uppstod</h2>
-        <p className="text-red-500 mt-2">{error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-        >
-          Försök igen
-        </button>
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center p-6 bg-red-50 rounded-lg max-w-md">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-10 w-10 text-red-500 mx-auto"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <h2 className="text-xl font-medium text-red-600 mt-4">
+            Ett fel uppstod
+          </h2>
+          <p className="text-red-500 mt-2">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+          >
+            Försök igen
+          </button>
+        </div>
       </div>
-    </div>
-  )
+    );
 
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8 text-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Dina scannade varor</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+            Dina scannade varor
+          </h1>
         </header>
 
         <main className="max-w-3xl mx-auto">
           {items.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-12 w-12 text-gray-400 mx-auto"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
-              <h2 className="text-xl font-medium text-gray-600 mt-4">Inga varor hittades</h2>
-              <p className="text-gray-500 mt-2">Du har inte skannat några varor ännu</p>
+              <h2 className="text-xl font-medium text-gray-600 mt-4">
+                Inga varor hittades
+              </h2>
+              <p className="text-gray-500 mt-2">
+                Du har inte skannat några varor ännu
+              </p>
             </div>
           ) : (
             <>
               <div className="mb-6 grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Antal varor</p>
-                  <p className="font-bold text-lg text-blue-500">{items.length}</p>
+                  <p className="font-bold text-lg text-blue-500">
+                    {items.length}
+                  </p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Totalt antal</p>
-                  <p className="font-bold text-lg text-blue-500">{items.reduce((sum, item) => sum + item.quantity, 0)} st</p>
+                  <p className="font-bold text-lg text-blue-500">
+                    {items.reduce((sum, item) => sum + item.quantity, 0)} st
+                  </p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Total summa</p>
-                  <p className="font-bold text-lg text-blue-500">{totalPrice.toFixed(2)} kr</p>
+                  <p className="font-bold text-lg text-blue-500">
+                    {totalPrice.toFixed(2)} kr
+                  </p>
                 </div>
               </div>
 
@@ -98,9 +166,10 @@ export default function StopScan({ user }: { user: any }) {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-medium text-gray-800 text-lg">{entry.item.name}</h3>
+                        <h3 className="font-medium text-gray-800 text-lg">
+                          {entry.item.name}
+                        </h3>
                       </div>
-                    
                     </div>
                     <div className="mt-3 flex justify-between items-center">
                       <p className="text-gray-600">
@@ -117,7 +186,9 @@ export default function StopScan({ user }: { user: any }) {
               <div className="bg-blue-50 p-4 rounded-lg mb-8">
                 <div className="flex justify-between items-center">
                   <p className="text-gray-800 font-medium">Att betala:</p>
-                  <p className="text-2xl font-bold text-blue-600">{totalPrice.toFixed(2)} kr</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {totalPrice.toFixed(2)} kr
+                  </p>
                 </div>
               </div>
             </>
@@ -130,7 +201,10 @@ export default function StopScan({ user }: { user: any }) {
               <button className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
                 Kontakta personal
               </button>
-              <button className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+              <button
+                onClick={handleConfirmAndPay}
+                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
                 Bekräfta och betala
               </button>
             </div>
@@ -138,5 +212,5 @@ export default function StopScan({ user }: { user: any }) {
         )}
       </div>
     </div>
-  )
+  );
 }

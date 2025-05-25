@@ -53,13 +53,11 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!user) return null;
-          if (user.token) throw new Error("Scaning session already started!");
-
-
+          //if (user.token) return null;
+          
           const generatedToken = crypto.randomBytes(16).toString("hex");
 
           const tokenExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000);
-
 
           await prisma.user.update({
             where: { userId: user.userId },
@@ -94,13 +92,12 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-    if (session.user && token.userId) {
+      if (session.user && token.userId) {
         session.user.userId = token.userId as string;
         session.user.token = token.authToken as string;
-    }
-    return session;
-}
-
+      }
+      return session;
+    },
   },
 };
 
