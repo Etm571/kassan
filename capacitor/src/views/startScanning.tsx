@@ -50,8 +50,11 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
   useEffect(() => {
     const fetchAllItems = async () => {
       try {
+        const backendUrl = localStorage.getItem("backendUrl") || import.meta.env.VITE_WEBAPP;
+
         const response = await fetch(
-          `https://${import.meta.env.VITE_WEBAPP}/api/items/manage`,
+          
+          `https://${backendUrl}/api/items/manage`,
           {
             headers: {
               "ngrok-skip-browser-warning": "true",
