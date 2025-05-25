@@ -90,3 +90,42 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get("userId");
+  const token = searchParams.get("token");
+
+  if (!userId || !token) {
+    return NextResponse.json(
+      { error: "Missing userId or token" },
+      { status: 400, headers: corsHeaders }
+    );
+  }
+
+  const user = await prisma.user.findUnique({ where: { userId } });
+
+  if (!user || user.token !== token) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401, headers: corsHeaders }
+    );
+  }
+
+  if (user.tokenExpiry && user.tokenExpiry < new Date()) {
+    return NextResponse.json(
+      { error: "Token expired" },
+      { status: 403, headers: corsHeaders }
+    );
+  }
+
+  const scannedItems = await prisma.scannedItem.findMany({
+    where: { userId: user.id },
+    include: { item: true }
+  });
+
+  return NextResponse.json(
+    { items: scannedItems },
+    { status: 200, headers: corsHeaders }
+  );
+}
