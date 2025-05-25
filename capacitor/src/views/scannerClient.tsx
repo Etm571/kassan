@@ -10,9 +10,9 @@ export default function ScannerClient() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const ws = new WebSocket(
-      `wss://${import.meta.env.VITE_WEBSOCKET}?ngrok-skip-browser-warning=true`
-    );
+    const storedWebsocket = localStorage.getItem("websocketUrl") || import.meta.env.VITE_WEBSOCKET
+    const ws = new WebSocket(`wss://${storedWebsocket}?ngrok-skip-browser-warning=true`)
+
 
     ws.onopen = () => {
       setConnected(true);
@@ -55,8 +55,10 @@ export default function ScannerClient() {
       });
 
       if (cancelled) return;
-      if (value === import.meta.env.VITE_ADMIN_PIN) {
-        navigate("/settingsScreen");
+      const correctPin = localStorage.getItem("adminPin") || import.meta.env.VITE_ADMIN_PIN
+
+      if (value === correctPin) {
+        navigate("/settings");
       } else if (value !== null) {
         await Dialog.alert({ title: "Error", message: "Invalid PIN" });
       }
