@@ -32,11 +32,14 @@ wss.on("connection", (ws, req) => {
     console.log(`Pong mottaget från scanner: ${ws.id}`);
   });
 
+  ws.typ = req.url === "/client" ? "client" : "scanner";
+
   ws.on("message", (msg) => {
     try {
       const data = JSON.parse(msg);
       if (data.type === "register-scanner") {
         scanners.set(ws.id, ws);
+        broadcastScannerList();
         console.log(`Scanner registrerad: ${ws.id}`);
       }
     } catch (err) {
@@ -45,10 +48,24 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on("close", () => {
-    scanners.delete(ws.id);
-    console.log(`Scanner borttagen: ${ws.id}`);
+    if (ws.typ === "scanner") {
+      scanners.delete(ws.id);
+      broadcastScannerList();
+      console.log(`Scanner borttagen: ${ws.id}`);
+    }
   });
 });
+
+function broadcastScannerList() {
+  const scannerIds = [...scanners.keys()];
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN && client.typ === "client") {
+      client.send(
+        JSON.stringify({ type: "scanner-list", scanners: scannerIds })
+      );
+    }
+  });
+}
 
 const interval = setInterval(() => {
   wss.clients.forEach((ws) => {
@@ -80,6 +97,11 @@ app.post("/assign", (req, res) => {
   } catch (err) {
     return res.status(500).json({ fel: "Kunde inte skicka till scanner" });
   }
+});
+
+app.get("/scanners", (req, res) => {
+  const scannerList = [...scanners.keys()];
+  res.json({ scanners: scannerList });
 });
 
 server.listen(8080, () => {
