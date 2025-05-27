@@ -33,16 +33,16 @@ export default function ScannerView() {
     return Number.isInteger(price) ? price.toString() : price.toFixed(2);
   };
 
- const handleSummaryClick = () => {
-  clickCountRef.current += 1;
-  if (clickCountRef.current >= 7) {
-    setShowLog(true);
-    clickCountRef.current = 0;
-    setTimeout(() => {
-      setShowLog(false);
-    }, 10000);
-  }
-};
+  const handleSummaryClick = () => {
+    clickCountRef.current += 1;
+    if (clickCountRef.current >= 7) {
+      setShowLog(true);
+      clickCountRef.current = 0;
+      setTimeout(() => {
+        setShowLog(false);
+      }, 10000);
+    }
+  };
 
   //const userId = state?.userId || "unknown-id";
   //const userName = state?.userName || "unknown user";
@@ -113,8 +113,16 @@ export default function ScannerView() {
   });
 
   const simulateScan = () => {
-    const barcode = "2980000000003";
+    let x = 0;
+    while (x < 10000) {
+      const barcode = "1000";
+      scanHandler({ barcode });
+      x++;
+    }
+  };
 
+  const simulateScan2 = () => {
+    const barcode = "2980000000003";
     scanHandler({ barcode });
   };
 
@@ -205,9 +213,9 @@ export default function ScannerView() {
               >
                 <div className="item-left">
                   <div className="item-name">{item.name}</div>
-                    <div className="item-details">
+                  <div className="item-details">
                     {item.count} × {formatPrice(Number(item.price))} kr
-                    </div>
+                  </div>
                 </div>
                 <div className="item-total">
                   {formatPrice(item.count * (item.price ?? 0))} kr
@@ -233,9 +241,16 @@ export default function ScannerView() {
             Ta bort vara
           </button>
 
-          <button onClick={simulateScan} style={{ margin: "1em" }}>
-            Simulera skanning
-          </button>
+          {showLog && (
+            <div>
+              <button onClick={simulateScan} style={{ margin: "1em" }}>
+                Simulera skanning
+              </button>
+              <button onClick={simulateScan2} style={{ margin: "1em" }}>
+                Simulera skanning2
+              </button>
+            </div>
+          )}
         </div>
         {showLog && (
           <div className="scan-log">

@@ -1,16 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, ngrok-skip-browser-warning',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, ngrok-skip-browser-warning",
+};
 
 export function OPTIONS() {
-  return NextResponse.json({}, {
-    headers: corsHeaders
-  })
+  return NextResponse.json(
+    {},
+    {
+      headers: corsHeaders,
+    }
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -59,7 +62,9 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const item = await prisma.item.findUnique({ where: { barcode: scanned.barcode } });
+      const item = await prisma.item.findUnique({
+        where: { barcode: scanned.barcode },
+      });
 
       if (!item) {
         return NextResponse.json(
@@ -73,15 +78,14 @@ export async function POST(req: NextRequest) {
           userId: user.id,
           itemId: item.id,
           quantity: scanned.count || 1,
-        }
+        },
       });
     }
 
     return NextResponse.json(
-      { success: true },
+      { success: true, message: "Items saved successfully" },
       { status: 200, headers: corsHeaders }
     );
-
   } catch (error) {
     console.error("Error saving scanned items:", error);
     return NextResponse.json(
@@ -121,7 +125,7 @@ export async function GET(req: NextRequest) {
 
   const scannedItems = await prisma.scannedItem.findMany({
     where: { userId: user.id },
-    include: { item: true }
+    include: { item: true },
   });
 
   return NextResponse.json(
@@ -129,7 +133,6 @@ export async function GET(req: NextRequest) {
     { status: 200, headers: corsHeaders }
   );
 }
-
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -161,7 +164,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await prisma.scannedItem.deleteMany({
-      where: { userId: user.id }
+      where: { userId: user.id },
     });
 
     return NextResponse.json(
