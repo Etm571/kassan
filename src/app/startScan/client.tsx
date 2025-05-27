@@ -29,10 +29,9 @@ export default function ScanSuccessClient({ user }: { user: any }) {
           setAssignError(error.fel || "Misslyckades med att tilldela skanner.");
         } else {
           const data = await res.json();
-          console.log("Tilldelad till skanner-ID:", data.skickadTill);
+          
         }
       } catch (err) {
-        console.error("Nätverksfel:", err);
         setAssignError("Nätverksfel vid tilldelning av skanner.");
       }
     };
@@ -51,13 +50,13 @@ export default function ScanSuccessClient({ user }: { user: any }) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
       <h1 className="text-3xl font-bold mb-4 text-black">
-        Skanningssession Startad
+        Scanning session started
       </h1>
       {assignError ? (
         <p className="text-lg text-red-500">{assignError}</p>
       ) : (
         <p className="text-lg text-gray-600">
-          Välkommen {user.name}! Du är nu redo att börja skanna.
+          Hello, {user.name}! You are now ready to start scanning!
         </p>
       )}
     </div>
