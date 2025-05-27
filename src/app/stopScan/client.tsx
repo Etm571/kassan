@@ -49,13 +49,13 @@ export default function StopScan({ user }: { user: any }) {
     if (!res.ok) {
       alert(data.error || "Något gick fel vid betalning.");
     } else {
-      alert("Betalning genomförd!");
+      alert("Payment completed!");
       setItems([]);
       router.push('/');
 
     }
   } catch (err) {
-    alert("Kunde inte genomföra betalning.");
+    alert("Could not confirm payment.");
   }
 };
 
@@ -65,7 +65,7 @@ export default function StopScan({ user }: { user: any }) {
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-gray-600 mt-4">Hämtar dina skannade varor...</p>
+          <p className="text-gray-600 mt-4">Fetching your scanned items...</p>
         </div>
       </div>
     );
@@ -89,14 +89,14 @@ export default function StopScan({ user }: { user: any }) {
             />
           </svg>
           <h2 className="text-xl font-medium text-red-600 mt-4">
-            Ett fel uppstod
+            An error occurred.
           </h2>
           <p className="text-red-500 mt-2">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
           >
-            Försök igen
+            Try again
           </button>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function StopScan({ user }: { user: any }) {
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8 text-center">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-            Dina scannade varor
+            Your scanned items
           </h1>
         </header>
 
@@ -129,10 +129,10 @@ export default function StopScan({ user }: { user: any }) {
                 />
               </svg>
               <h2 className="text-xl font-medium text-gray-600 mt-4">
-                Inga varor hittades
+                No items found
               </h2>
               <p className="text-gray-500 mt-2">
-                Du har inte skannat några varor ännu
+                You haven't scanned any items.
               </p>
             </div>
           ) : (
@@ -199,13 +199,13 @@ export default function StopScan({ user }: { user: any }) {
           <footer className="mt-8 pt-6 border-t border-gray-200">
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                Kontakta personal
+                Alert staff
               </button>
               <button
                 onClick={handleConfirmAndPay}
                 className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Bekräfta och betala
+                Confirm and pay
               </button>
             </div>
           </footer>
