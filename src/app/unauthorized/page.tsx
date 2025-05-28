@@ -1,72 +1,44 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/../auth.config';
-import { redirect } from 'next/navigation';
+import { LockClosedIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
-export default async function RolePage() {
-  const session = await getServerSession(authOptions);
-
-  // Om användaren inte är inloggad, redirecta till login
-  if (!session?.user) {
-    redirect('/login');
-  }
-
-  // Hämta användarens roll
-  type Role = 'ADMIN' | 'STAFF' | 'CUSTOMER';
-  const userRole = session.user.role as Role;
-
-  // Färger baserat på roll
-  const roleColors: Record<Role, string> = {
-    ADMIN: 'bg-red-500',
-    STAFF: 'bg-blue-500',
-    CUSTOMER: 'bg-green-500',
-  };
-
+export default function UnauthorizedPage({
+  searchParams,
+}: {
+  searchParams: { message?: string };
+}) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold mb-6 text-center">Din användarroll</h1>
-        
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="font-medium">Inloggad som:</span>
-            <span>{session.user.name || session.user.email}</span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+            <LockClosedIcon className="w-8 h-8 text-red-600" />
           </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="font-medium">Din roll:</span>
-            <span 
-              className={`px-3 py-1 rounded-full text-white ${roleColors[userRole] ?? 'bg-gray-500'}`}
+        </div>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Unauthorized Access
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          {searchParams.message || "You don't have permission to view this page."}
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <div className="flex flex-col space-y-4">
+            <Link
+              href="/"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {userRole}
-            </span>
+              Return
+            </Link>
+            
+            <Link
+              href="/login"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Sign in with a different account
+            </Link>
           </div>
-        </div>
-
-        <div className="mt-8 pt-4 border-t border-gray-200">
-          <h2 className="text-lg font-semibold mb-2">Rollbeskrivningar:</h2>
-          <ul className="space-y-2">
-            <li className="flex items-center">
-              <span className={`w-3 h-3 rounded-full mr-2 ${roleColors.ADMIN}`}></span>
-              <span>ADMIN - Fullständig åtkomst till allt</span>
-            </li>
-            <li className="flex items-center">
-              <span className={`w-3 h-3 rounded-full mr-2 ${roleColors.STAFF}`}></span>
-              <span>STAFF - Begränsad administrativ åtkomst</span>
-            </li>
-            <li className="flex items-center">
-              <span className={`w-3 h-3 rounded-full mr-2 ${roleColors.CUSTOMER}`}></span>
-              <span>CUSTOMER - Grundläggande användarbehörigheter</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="mt-6 flex justify-center">
-          <a 
-            href="/dashboard" 
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Tillbaka till dashboard
-          </a>
         </div>
       </div>
     </div>
