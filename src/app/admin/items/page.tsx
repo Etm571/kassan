@@ -19,7 +19,7 @@ export default function AdminItemForm() {
   const [items, setItems] = useState<Item[]>([])
 
   useEffect(() => {
-    fetch('/api/admin/manageItems/manage')
+    fetch('/api/public/items')
       .then(res => res.json())
       .then(setItems)
   }, [])
@@ -27,7 +27,7 @@ export default function AdminItemForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const res = await fetch('/api/admin/manageItems/manage', {
+    const res = await fetch('/api/admin/manageItems', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, barcode, imagePath, price })
@@ -39,7 +39,7 @@ export default function AdminItemForm() {
       setBarcode('')
       setImagePath('')
       setPrice('')
-      const updatedItems = await fetch('/api/admin/manageItems/manage').then(res => res.json())
+      const updatedItems = await fetch('/api/public/items').then(res => res.json())
       setItems(updatedItems)
     } else {
       const error = await res.json()
@@ -48,7 +48,7 @@ export default function AdminItemForm() {
   }
 
   const handleUpdate = async (item: Item) => {
-    const res = await fetch('/api/admin/manageItems/manage', {
+    const res = await fetch('/api/admin/manageItems', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(item)
