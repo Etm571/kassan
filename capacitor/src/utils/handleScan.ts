@@ -40,7 +40,7 @@ export const handleScan =
           localStorage.getItem("backendUrl") || import.meta.env.VITE_WEBAPP;
 
         await fetch(
-          `https://${backendUrl}/api/items/userItems?ngrok-skip-browser-warning=true`,
+          `https://${backendUrl}/api/userItems?ngrok-skip-browser-warning=true`,
           {
             method: "POST",
             headers: {

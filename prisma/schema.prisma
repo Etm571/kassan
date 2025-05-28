@@ -14,15 +14,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+
 model User {
   id          Int           @id @default(autoincrement())
   userId      String        @unique
   email       String
   name        String
+  role        Role          @default(CUSTOMER)
   token       String?
   tokenExpiry DateTime?
   scannedItems ScannedItem[]
-  createdAt DateTime @default(now()) 
+  createdAt DateTime @default(now())
 }
 
 model Item {

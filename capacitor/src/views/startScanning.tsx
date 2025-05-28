@@ -54,7 +54,7 @@ export default function WelcomeScreen({ message }: WelcomeScreenProps) {
 
         const response = await fetch(
           
-          `https://${backendUrl}/api/items/manage`,
+          `https://${backendUrl}/api/public/items?ngrok-skip-browser-warning=true`,
           {
             headers: {
               "ngrok-skip-browser-warning": "true",
