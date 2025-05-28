@@ -5,10 +5,9 @@ import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/app/lib/prisma";
 import crypto from "crypto";
 
-// Extend the Session and JWT types to include role
 declare module "next-auth" {
   interface User {
-    role?: string; // Or use a specific type like "ADMIN" | "STAFF" | "CUSTOMER"
+    role?: string;
   }
   
   interface Session {
@@ -18,7 +17,7 @@ declare module "next-auth" {
       image?: string | null;
       userId: string;
       token: string;
-      role: string; // Add role to session
+      role: string;
     };
   }
 }
@@ -105,7 +104,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user && token.userId) {
         session.user.userId = token.userId as string;
         session.user.token = token.authToken as string;
-        session.user.role = token.role as string; // Add role to session
+        session.user.role = token.role as string;
       }
       return session;
     },

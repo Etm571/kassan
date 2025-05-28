@@ -147,3 +147,37 @@ export async function POST(req: NextRequest) {
     })
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const idParam = searchParams.get('id')
+  const id = idParam ? Number(idParam) : null
+
+  if (!id) {
+    return NextResponse.json(
+      { error: 'ID is required' },
+      {
+        status: 400,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      }
+    )
+  }
+
+  try {
+    await prisma.item.delete({ where: { id } })
+    return NextResponse.json(
+      { success: true, message: 'Item deleted successfully' },
+      {
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      }
+    )
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to delete item' },
+      {
+        status: 500,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      }
+    )
+  }
+}
