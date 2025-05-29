@@ -80,6 +80,11 @@ export async function POST(req: NextRequest) {
           quantity: scanned.count || 1,
         },
       });
+
+      await prisma.user.update({
+        where: { userId: userId },
+        data: { token: null },
+      });
     }
 
     return NextResponse.json(
