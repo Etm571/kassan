@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
+import { signOut } from "next-auth/react";
+
 
 
 export default function StopScan({ user }: { user: any }) {
@@ -33,6 +35,15 @@ export default function StopScan({ user }: { user: any }) {
     fetchItems();
   }, [user.userId, user.token]);
 
+
+  useEffect(() => {
+    if (!loading && !error && items.length === 0) {
+      const timer = setTimeout(() => {
+        signOut({ callbackUrl: "/" });
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [items.length, loading, error]);
   const totalPrice = items.reduce(
     (sum, item) => sum + item.item.price * item.quantity,
     0
@@ -48,10 +59,12 @@ export default function StopScan({ user }: { user: any }) {
 
     if (!res.ok) {
       alert(data.error || "Något gick fel vid betalning.");
+      signOut({ callbackUrl: "/" });
+
     } else {
       alert("Payment completed!");
       setItems([]);
-      router.push('/');
+      signOut({ callbackUrl: "/" });
 
     }
   } catch (err) {
