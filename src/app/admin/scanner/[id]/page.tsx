@@ -121,7 +121,7 @@ export default function ScannerDetail() {
             <div className="p-6 text-center">
               <div className="text-gray-500 mb-2">No active user session</div>
               <div className="text-sm text-gray-400">
-                This scanner is currently available, last used{" "}
+                This scanner is currently available, last started session: {" "}
                 {format(new Date(scanner.startTime!), "yyyy-MM-dd HH:mm", {
                   timeZone: "Europe/Stockholm",
                 })}
