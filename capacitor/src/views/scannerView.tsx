@@ -3,6 +3,7 @@ import { DataWedge } from "capacitor-datawedge";
 import "../styles/scannerView.css";
 import { useLocation } from "react-router-dom";
 import { handleScan as createHandleScan } from "../utils/handleScan";
+import { useNavigate } from "react-router-dom";
 
 export default function ScannerView() {
   const [items, setItems] = useState<
@@ -27,6 +28,7 @@ export default function ScannerView() {
     barcode?: string;
     itemCacheEntries?: [string, { name: string; price?: number }][];
   };
+  const navigate = useNavigate();
 
   const formatPrice = (price?: number) => {
     if (typeof price !== "number" || isNaN(price)) return "0";
@@ -108,7 +110,7 @@ export default function ScannerView() {
     token: state?.token || "unknown-token",
     log: (msg: string) => setScanLog((prev) => [...prev, msg]),
     navigate: () => {
-      window.location.href = "/";
+      navigate("/")
     },
   });
 
