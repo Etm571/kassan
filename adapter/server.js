@@ -24,30 +24,41 @@ const scanners = new Map();
 
 wss.on("connection", (ws, req) => {
   ws.id = uuidv4();
-  ws.typ = "scanner";
+  ws.typ = req.url === "/client" ? "client" : "scanner";
   ws.isAlive = true;
+  ws.isRegistered = false;
+
+  console.log(`Ny ${ws.typ} anslutning: ${ws.id}`);
+
+  const registerTimeout = setTimeout(() => {
+    if (ws.typ === "scanner" && !ws.isRegistered) {
+      ws.terminate();
+    }
+  }, 10000);
 
   ws.on("pong", () => {
     ws.isAlive = true;
-    console.log(`Pong mottaget från scanner: ${ws.id}`);
+    console.log(`Pong mottaget från ${ws.typ}: ${ws.id}`);
   });
-
-  ws.typ = req.url === "/client" ? "client" : "scanner";
 
   ws.on("message", (msg) => {
     try {
       const data = JSON.parse(msg);
+
       if (data.type === "register-scanner") {
         scanners.set(ws.id, ws);
+        ws.isRegistered = true;
         broadcastScannerList();
         console.log(`Scanner registrerad: ${ws.id}`);
       }
+
     } catch (err) {
       console.error("Felaktigt meddelande:", err);
     }
   });
 
   ws.on("close", () => {
+    clearTimeout(registerTimeout);
     if (ws.typ === "scanner") {
       scanners.delete(ws.id);
       broadcastScannerList();
