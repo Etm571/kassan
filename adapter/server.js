@@ -127,6 +127,8 @@ app.post("/assign", (req, res) => {
     scannerData.ws.send(JSON.stringify({ type: "assign", user }));
     scannerData.status = "occupied";
     scannerData.user = user;
+    scannerData.startTime = new Date().toISOString();
+
     broadcastScannerList();
     console.log("Tilldelar användare:", user, "till scanner:", scannerId);
     return res.json({ skickadTill: scannerId });
@@ -136,10 +138,12 @@ app.post("/assign", (req, res) => {
 });
 
 app.get("/scanners", (req, res) => {
-  const scannerList = [...scanners.entries()].map(([id, { status, user }]) => ({
+  const scannerList = [...scanners.entries()].map(([id, ws]) => ({
     id,
-    status,
-    user,
+    status: ws.status,
+    user: ws.user || null,
+    startTime: ws.startTime || null,
+    typ: ws.typ,
   }));
   res.json({ scanners: scannerList });
 });
