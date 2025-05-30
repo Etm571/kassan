@@ -4,6 +4,8 @@ const http = require("http");
 const WebSocket = require("ws");
 const bodyParser = require("body-parser");
 const { v4: uuidv4 } = require("uuid");
+require("dotenv").config();
+
 
 const app = express();
 
@@ -138,13 +140,20 @@ app.post("/assign", (req, res) => {
 });
 
 app.get("/scanners", (req, res) => {
-  const scannerList = [...scanners.entries()].map(([id, ws]) => ({
+  const authSecret = req.headers["x-auth-secret"];
+  
+  if (authSecret !== process.env.AUTH_SECRET) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  const scannerList = [...scanners.entries()].map(([id, scanner]) => ({
     id,
-    status: ws.status,
-    user: ws.user || null,
-    startTime: ws.startTime || null,
-    typ: ws.typ,
+    status: scanner.status,
+    user: scanner.user || null,
+    startTime: scanner.startTime || null,
+    typ: "scanner",
   }));
+
   res.json({ scanners: scannerList });
 });
 
