@@ -46,10 +46,24 @@ wss.on("connection", (ws, req) => {
       const data = JSON.parse(msg);
 
       if (data.type === "register-scanner") {
-        scanners.set(ws.id, ws);
+        scanners.set(ws.id, {
+          ws,
+          status: "free",
+          user: null,
+        });
         ws.isRegistered = true;
         broadcastScannerList();
         console.log(`Scanner registrerad: ${ws.id}`);
+      }
+
+      if (data.type === "free") {
+        if (scanners.has(ws.id)) {
+          const scanner = scanners.get(ws.id);
+          scanner.status = "free";
+          scanner.user = null;
+          broadcastScannerList();
+          console.log(`Scanner frigjord: ${ws.id}`);
+        }
       }
 
     } catch (err) {
@@ -68,11 +82,16 @@ wss.on("connection", (ws, req) => {
 });
 
 function broadcastScannerList() {
-  const scannerIds = [...scanners.keys()];
+  const scannerData = [...scanners.entries()].map(([id, { status, user }]) => ({
+    id,
+    status,
+    user,
+  }));
+
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN && client.typ === "client") {
       client.send(
-        JSON.stringify({ type: "scanner-list", scanners: scannerIds })
+        JSON.stringify({ type: "scanner-list", scanners: scannerData })
       );
     }
   });
@@ -95,17 +114,21 @@ wss.on("close", () => {
 
 app.post("/assign", (req, res) => {
   const { user } = req.body;
-  const [scannerId, scannerWs] = [...scanners.entries()][0] || [];
-    if (!scannerWs) {
-    return res.status(400).json({ fel: "Ingen scanner tillgänglig" });
+
+  const entry = [...scanners.entries()].find(([_, scanner]) => scanner.status === "free");
+
+  if (!entry) {
+    return res.status(400).json({ fel: "Ingen ledig scanner tillgänglig" });
   }
-  
-  console.log("Tilldelar användare:", user, "till scanner:", scannerId);
 
-
+  const [scannerId, scannerData] = entry;
 
   try {
-    scannerWs.send(JSON.stringify({ type: "assign", user }));
+    scannerData.ws.send(JSON.stringify({ type: "assign", user }));
+    scannerData.status = "occupied";
+    scannerData.user = user;
+    broadcastScannerList();
+    console.log("Tilldelar användare:", user, "till scanner:", scannerId);
     return res.json({ skickadTill: scannerId });
   } catch (err) {
     return res.status(500).json({ fel: "Kunde inte skicka till scanner" });
@@ -113,7 +136,11 @@ app.post("/assign", (req, res) => {
 });
 
 app.get("/scanners", (req, res) => {
-  const scannerList = [...scanners.keys()];
+  const scannerList = [...scanners.entries()].map(([id, { status, user }]) => ({
+    id,
+    status,
+    user,
+  }));
   res.json({ scanners: scannerList });
 });
 

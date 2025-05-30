@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/scannerClient.css";
 import { useWebSocket } from "../contexts/websocket";
 
 export default function ScannerClient() {
-  const { connected } = useWebSocket();
+  const { connected, sendMessage } = useWebSocket();
   const navigate = useNavigate();
   const [tapCount, setTapCount] = useState(0);
+  const hasSentFree = useRef(false);
 
+  if (connected && !hasSentFree.current) {
+    sendMessage({ type: "free" });
+    console.log("[ScannerClient] Sent free message (SSR-safe)");
+    hasSentFree.current = true;
+  }
 
   const handleScreenTap = () => {
     const newCount = tapCount + 1;
