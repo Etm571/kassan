@@ -5,6 +5,12 @@ import ScanSuccessClient from "./client";
 export default async function ScanSuccessPage() {
   const session = await auth();
 
+  if (!session?.user) {
+    redirect("/");
+  }
+
+  let assignError: string | null = null;
+
   const assignUser = async () => {
     const user = session?.user;
     try {
@@ -22,20 +28,14 @@ export default async function ScanSuccessPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        return (error.fel || "Misslyckades med att tilldela skanner.");
-      } else {
-        const data = await res.json();
+        assignError = error.fel || "Misslyckades med att tilldela skanner.";
       }
     } catch (err) {
-      return ("Nätverksfel vid tilldelning av skanner.");
+      assignError = "Nätverksfel vid tilldelning av skanner.";
     }
   };
 
-  assignUser();
+  await assignUser();
 
-  if (!session?.user) {
-    redirect("/");
-  }
-
-  return <ScanSuccessClient user={session.user} />;
+  return <ScanSuccessClient user={session.user} assignError={assignError} />;
 }

@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { signOut } from "next-auth/react";
 
-export default function ScanSuccessClient({ user }: { user: any }) {
-  const [assignError, setAssignError] = useState<string | null>(null);
-
-
+export default function ScanSuccessClient({
+  user,
+  assignError,
+}: {
+  user: any;
+  assignError: string | null;
+}) {
   useEffect(() => {
     const timer = setTimeout(() => {
       signOut({ callbackUrl: "/" });
