@@ -6,38 +6,6 @@ import { signOut } from "next-auth/react";
 export default function ScanSuccessClient({ user }: { user: any }) {
   const [assignError, setAssignError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const assignUser = async () => {
-      console.log(user);
-
-      try {
-        const res = await fetch(
-          `https://${process.env.NEXT_PUBLIC_WEBSOCKET}/assign`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-            },
-            body: JSON.stringify({ user }),
-            
-          }
-        );
-
-        if (!res.ok) {
-          const error = await res.json();
-          setAssignError(error.fel || "Misslyckades med att tilldela skanner.");
-        } else {
-          const data = await res.json();
-          
-        }
-      } catch (err) {
-        setAssignError("Nätverksfel vid tilldelning av skanner.");
-      }
-    };
-
-    assignUser();
-  }, [user]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
