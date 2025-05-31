@@ -11,15 +11,15 @@ A complete self-scanning system optimized for **Zebra MC18 Android scanners**, f
 A trio of interconnected components:
 
 - **Next.js WebApp**: User authentication, scanner management, and checkout system dashboard.
-- **Capacitor/React Android App**: Runs directly on Zebra MC18 scanners (Android 5.1.1, API 22 or greater) for barcode scanning.
+- **Capacitor/React Android App**: Runs directly on Zebra scanners (Android 5.1.1, API 22 or greater) for barcode scanning.
 - **Express.js WebSocket Server**: Facilitates real-time communication between scanners and the web interface.
 
 ---
 
 ## Project Architecture
 
-- **Web App**: Located in `/`, handles checkout and got a UI for administrators to add items, users and more.
-- **Android App**: Resides in `/capacitor`, optimized for Zebra's hardware triggers and scanning capabilities.
+- **Web App**: Located in `/`, handles user signin, checkout and got a UI for administrators to add items, users and more.
+- **Scanner App**: Resides in `/capacitor`, optimized for Zebra's hardware triggers and scanning capabilities.
 - **WebSocket Server**: In `/adapter`, manages persistent connections between devices.
 
 ---
@@ -37,12 +37,13 @@ A trio of interconnected components:
   - Multi-user authentication
   - Session analytics
   - Remote scanner configuration
+  - Manage scanners and users
 
 ---
 
 ## Requirements
 
-- **Hardware**: Zebra MC18 (Android 5.1.1)
+- **Hardware**: Zebra MC18 or other DataWedge enabled scanner (Android 5.1.1 +)
 - **Development**:
   - Node.js 18+
   - Android Studio (for APK builds)
@@ -73,7 +74,7 @@ A trio of interconnected components:
 
 1. **Authentication**: Users log in via the Next.js web portal.
 2. **Device Pairing**: Scanners connect to the WebSocket server on startup.
-3. **Scanning**: MC18 hardware triggers initiate barcode capture.
+3. **Scanning**: Scanner hardware triggers initiate barcode capture.
 4. **Checkout**: Web interface aggregates scanned items for payment processing.
 5. **Monitoring**: Real-time dashboard shows active scanners and transactions.
 
