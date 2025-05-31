@@ -172,6 +172,11 @@ export async function DELETE(req: NextRequest) {
       where: { userId: user.id },
     });
 
+    await prisma.user.update({
+      where: { userId: userId },
+      data: { tokenExpiry: null },
+    });
+
     return NextResponse.json(
       { success: true },
       { status: 200, headers: corsHeaders }

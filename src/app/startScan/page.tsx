@@ -1,12 +1,28 @@
 import { auth } from "./../../../auth.config";
 import { redirect } from "next/navigation";
 import ScanSuccessClient from "./client";
+import { prisma } from "@/app/lib/prisma";
+import ExistingSession from "../views/existingSession";
 
 export default async function ScanSuccessPage() {
   const session = await auth();
 
   if (!session?.user) {
     redirect("/");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { userId: session.user.userId as string },
+  });
+
+  if (!user) {
+    redirect("/");
+  }
+
+  if (user.tokenExpiry) {
+    if (user.tokenExpiry > new Date()) {
+      return <ExistingSession />;
+    }
   }
 
   let assignError: string | null = null;
@@ -29,10 +45,21 @@ export default async function ScanSuccessPage() {
       if (!res.ok) {
         const error = await res.json();
         assignError = error.fel || "Misslyckades med att tilldela skanner.";
+        return
       }
     } catch (err) {
       assignError = "Nätverksfel vid tilldelning av skanner.";
+      return
     }
+
+    const tokenExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { userId: user.userId },
+      data: {
+        tokenExpiry,
+      },
+    });
   };
 
   await assignUser();

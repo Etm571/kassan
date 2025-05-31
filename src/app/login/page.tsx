@@ -10,7 +10,7 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/startScan/signInSuccess';
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +20,7 @@ export default function SignInPage() {
     try {
       const result = await signIn('credentials', {
         userId,
+        callbackUrl,
         redirect: false,
       });
 

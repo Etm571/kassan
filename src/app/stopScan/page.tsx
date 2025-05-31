@@ -9,5 +9,7 @@ export default async function ScanSuccessPage() {
     redirect("/");
   }
 
+  
+
   return <StopScan user={session.user} />;
 }

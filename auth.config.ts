@@ -51,6 +51,7 @@ export const authOptions: NextAuthOptions = {
       name: "User ID",
       credentials: {
         userId: { label: "User ID", type: "text" },
+        callbackUrl: { label: "Callback URL", type: "text" },
       },
       async authorize(credentials) {
         try {
@@ -63,17 +64,21 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!user) return null;
-          
-          const generatedToken = crypto.randomBytes(16).toString("hex");
-          const tokenExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000);
 
+
+          let generatedToken = user.token;
+
+         if (!user.token || !user.tokenExpiry || user.tokenExpiry < new Date()) {
+          generatedToken = crypto.randomBytes(16).toString("hex");
           await prisma.user.update({
             where: { userId: user.userId },
             data: {
               token: generatedToken,
-              tokenExpiry,
             },
           });
+
+         }
+          
 
           return {
             ...user,
