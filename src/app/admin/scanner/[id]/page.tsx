@@ -32,11 +32,12 @@ async function getScanner(id: string): Promise<Scanner | null> {
     return null;
   }
 }
-export default async function ScannerPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function ScannerPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   const scanner = await getScanner(params.id);
 
   return <ScannerDetailClient scanner={scanner} id={params.id} />;
