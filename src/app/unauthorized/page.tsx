@@ -1,11 +1,12 @@
 import { LockClosedIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
-export default function UnauthorizedPage({
+export default async function UnauthorizedPage({
   searchParams,
 }: {
-  searchParams: { message?: string };
+  searchParams: Promise<{ message?: string }>;
 }) {
+  const params = await searchParams;
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -18,7 +19,7 @@ export default function UnauthorizedPage({
           Unauthorized Access
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          {searchParams.message || "You don't have permission to view this page."}
+          {params.message || "You don't have permission to view this page."}
         </p>
       </div>
 
@@ -33,7 +34,7 @@ export default function UnauthorizedPage({
             </Link>
             
             <Link
-              href="/login"
+              href={params.message ? `/login?callbackUrl=${params.message}` : '/login'}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Sign in with a different account

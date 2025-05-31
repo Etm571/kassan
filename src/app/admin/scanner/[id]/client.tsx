@@ -33,7 +33,6 @@ export default function ScannerDetailClient({
         </div>
       </div>
     );
-
   return (
     <main className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 py-8">

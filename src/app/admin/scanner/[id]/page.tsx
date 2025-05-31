@@ -14,7 +14,7 @@ async function getScanner(id: string): Promise<Scanner | null> {
   try {
     const res = await fetch(`https://${process.env.NEXT_PUBLIC_WEBSOCKET}/scanners`, {
       headers: {
-        Authorization: `Bearer ${process.env.WEBSOCKET_SECRET}`,
+        "x-auth-secret": process.env.WEBSOCKET_SECRET!,
         "ngrok-skip-browser-warning": "true",
       },
       cache: "no-store",
@@ -26,15 +26,17 @@ async function getScanner(id: string): Promise<Scanner | null> {
     }
 
     const data = await res.json();
-    const scanner = data.scanners.find((s: Scanner) => s.id === id);
-    return scanner || null;
+    return data.scanners.find((s: Scanner) => s.id === id) || null;
   } catch (error) {
     console.error("Error fetching scanner:", error);
     return null;
   }
 }
-
-export default async function ScannerPage({ params }: { params: { id: string } }) {
+export default async function ScannerPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const scanner = await getScanner(params.id);
 
   return <ScannerDetailClient scanner={scanner} id={params.id} />;
