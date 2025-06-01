@@ -1,4 +1,4 @@
-import { auth } from "./../../../auth.config";
+import { auth } from "@/../auth.config";
 import { redirect } from "next/navigation";
 import ScanSuccessClient from "./client";
 import { prisma } from "@/app/lib/prisma";
@@ -19,10 +19,8 @@ export default async function ScanSuccessPage() {
     redirect("/");
   }
 
-  if (user.tokenExpiry) {
-    if (user.tokenExpiry > new Date()) {
-      return <ExistingSession />;
-    }
+  if (user.active) {
+    return <ExistingSession />;
   }
 
   let assignError: string | null = null;
@@ -52,12 +50,11 @@ export default async function ScanSuccessPage() {
       return
     }
 
-    const tokenExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000);
 
     await prisma.user.update({
       where: { userId: user.userId },
       data: {
-        tokenExpiry,
+        active: true,
       },
     });
   };

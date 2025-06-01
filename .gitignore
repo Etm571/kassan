@@ -45,5 +45,5 @@ capacitor/android
 capacitor/dist
 
 src/generated/prisma
-adapter/node_modules
+websocket/node_modules
 ngrok.yml

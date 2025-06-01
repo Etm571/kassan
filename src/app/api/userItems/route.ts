@@ -83,9 +83,11 @@ export async function POST(req: NextRequest) {
 
       await prisma.user.update({
         where: { userId: userId },
-        data: { token: null },
+        data: { token: null, tokenExpiry: null },
       });
     }
+
+
 
     return NextResponse.json(
       { success: true, message: "Items saved successfully" },
@@ -174,7 +176,7 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.user.update({
       where: { userId: userId },
-      data: { tokenExpiry: null },
+      data: { tokenExpiry: null, token: null, active: false },
     });
 
     return NextResponse.json(

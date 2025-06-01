@@ -74,6 +74,7 @@ export const authOptions: NextAuthOptions = {
             where: { userId: user.userId },
             data: {
               token: generatedToken,
+              tokenExpiry: new Date(Date.now() + 4 * 60 * 60 * 1000),
             },
           });
 
