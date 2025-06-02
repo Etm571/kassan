@@ -41,9 +41,11 @@ yarn-error.log*
 next-env.d.ts
 
 capacitor/node_modules
-capacitor/android
 capacitor/dist
 
 src/generated/prisma
 websocket/node_modules
 ngrok.yml
+
+capacitor/android/*
+!capacitor/android/app/
