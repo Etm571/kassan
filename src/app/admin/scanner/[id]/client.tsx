@@ -102,9 +102,11 @@ export default function ScannerDetailClient({
                 <div className="md:col-span-2">
                   <p className="text-sm text-gray-500">Session Started</p>
                   <p className="font-medium text-black">
-                    {format(new Date(scanner.startTime!), "yyyy-MM-dd HH:mm", {
-                      timeZone: "Europe/Stockholm",
-                    })}
+                    {scanner.startTime && !isNaN(new Date(scanner.startTime).getTime())
+                      ? format(new Date(scanner.startTime), "yyyy-MM-dd HH:mm", {
+                          timeZone: "Europe/Stockholm",
+                        })
+                      : "N/A"}
                   </p>
                 </div>
               </div>
@@ -114,11 +116,13 @@ export default function ScannerDetailClient({
               <div className="text-gray-500 mb-2">No active user session</div>
               <div className="text-sm text-gray-400">
                 This scanner is currently available, last started session:{" "}
-                {scanner.startTime
-                  ? format(new Date(scanner.startTime), "yyyy-MM-dd HH:mm", {
-                      timeZone: "Europe/Stockholm",
-                    })
-                  : "N/A"}
+                <p className="font-medium text-black">
+                  {scanner.startTime
+                    ? format(new Date(scanner.startTime), "yyyy-MM-dd HH:mm", {
+                        timeZone: "Europe/Stockholm",
+                      })
+                    : "N/A"}
+                </p>
               </div>
             </div>
           )}

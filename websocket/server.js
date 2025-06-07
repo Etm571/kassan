@@ -87,10 +87,11 @@ wss.on("connection", (ws, req) => {
 });
 
 function broadcastScannerList() {
-  const scannerData = [...scanners.entries()].map(([id, { status, user }]) => ({
+  const scannerData = [...scanners.entries()].map(([id, scanner]) => ({
     id,
-    status,
-    user,
+    status: scanner.status,
+    user: scanner.user,
+    startTime: scanner.startTime || null,
   }));
 
   wss.clients.forEach((client) => {
