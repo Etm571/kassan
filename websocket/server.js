@@ -59,12 +59,26 @@ wss.on("connection", (ws, req) => {
       }
 
       if (data.type === "free") {
-        if (scanners.has(ws.id)) {
-          const scanner = scanners.get(ws.id);
-          scanner.status = "free";
-          scanner.user = null;
-          broadcastScannerList();
-          console.log(`Scanner frigjord: ${ws.id}`);
+        if (ws.typ === "client" && data.id) {
+          if (scanners.has(data.id)) {
+            const scanner = scanners.get(data.id);
+            scanner.status = "free";
+            scanner.user = null;
+            if (scanner.ws && scanner.ws.readyState === WebSocket.OPEN) {
+              scanner.ws.send(JSON.stringify({ type: "freed" }));
+            }
+            broadcastScannerList();
+          }
+        } else if (ws.typ === "scanner") {
+          if (scanners.has(ws.id)) {
+            const scanner = scanners.get(ws.id);
+            scanner.status = "free";
+            scanner.user = null;
+            if (scanner.ws && scanner.ws.readyState === WebSocket.OPEN) {
+              scanner.ws.send(JSON.stringify({ type: "freed" }));
+            }
+            broadcastScannerList();
+          }
         }
       }
 
@@ -78,10 +92,8 @@ wss.on("connection", (ws, req) => {
     if (ws.typ === "scanner") {
       scanners.delete(ws.id);
       broadcastScannerList();
-      console.log(`Scanner borttagen: ${ws.id}`);
     }
     else if (ws.typ === "client") {
-      console.log(`Klient borttagen: ${ws.id}`);
     }
   });
 });
@@ -136,7 +148,6 @@ app.post("/assign", (req, res) => {
     scannerData.startTime = new Date().toISOString();
 
     broadcastScannerList();
-    console.log("Tilldelar användare:", user, "till scanner:", scannerId);
     return res.json({ skickadTill: scannerId });
   } catch (err) {
     return res.status(500).json({ fel: "Kunde inte skicka till scanner" });

@@ -19,7 +19,16 @@ export default function ScannerDetailClient({
   id: string;
 }) {
   const [scanner, setScanner] = useState<Scanner | null>(initialScanner);
-  const { addMessageHandler, removeMessageHandler } = useWebSocket();
+  const { addMessageHandler, removeMessageHandler, send } = useWebSocket();
+
+  const handleTerminate = () => {
+    if (!scanner) {
+      console.warn("No scanner to terminate");
+      return;
+    };
+    send({ type: "free", id: scanner.id });
+    console.log(`Terminated scanner ${scanner.id}`);
+  };
 
   useEffect(() => {
     const handler = (data: any) => {
@@ -63,6 +72,15 @@ export default function ScannerDetailClient({
             <span className="ml-2 font-mono bg-gray-100 px-3 py-1 rounded-lg text-gray-800">
               {scanner.id}
             </span>
+            {/* Terminate button */}
+            {scanner.status === "occupied" && (
+              <button
+                onClick={handleTerminate}
+                className="ml-6 px-4 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition"
+              >
+                Terminate
+              </button>
+            )}
           </div>
         </div>
 

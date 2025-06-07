@@ -56,6 +56,9 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({ child
               },
             });
             break;
+          case "freed":
+            navigate("/");
+            break;
           default:
             console.warn("[WebSocket] Unhandled message type:", data.type);
         }
