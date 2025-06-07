@@ -1,4 +1,3 @@
-// app/page.tsx (or pages/index.tsx for Pages Router)
 import ScannerClient from "./client";
 
 export default async function Page() {
@@ -8,15 +7,13 @@ export default async function Page() {
 }
 
 async function getScannersSecurely() {
-  const res = await fetch("http://localhost:8080/scanners", {
+  const res = await fetch("https://" + process.env.NEXT_PUBLIC_WEBSOCKET + "/scanners" as string, {
     headers: {
       "x-auth-secret": process.env.WEBSOCKET_SECRET!,
     },
     cache: "no-store",
   });
 
-  console.log(res.status, res.statusText);
-  console.log(process.env.WEBSOCKET_SECRET);
 
   if (!res.ok) return [];
 

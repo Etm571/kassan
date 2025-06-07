@@ -1,4 +1,3 @@
-// components/ScannerClient.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -29,7 +28,7 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
  
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080/client");
+    const ws = new WebSocket("wss://" + process.env.NEXT_PUBLIC_WEBSOCKET + "/client");
 
     ws.onopen = () => setIsConnected(true);
     ws.onclose = () => setIsConnected(false);
@@ -50,7 +49,6 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
   return (
     <main className="min-h-screen bg-white p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header UI */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <FiRadio className="text-blue-500 text-3xl" />

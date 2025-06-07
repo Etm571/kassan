@@ -80,6 +80,9 @@ wss.on("connection", (ws, req) => {
       broadcastScannerList();
       console.log(`Scanner borttagen: ${ws.id}`);
     }
+    else if (ws.typ === "client") {
+      console.log(`Klient borttagen: ${ws.id}`);
+    }
   });
 });
 
