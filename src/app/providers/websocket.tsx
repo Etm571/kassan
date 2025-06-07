@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 
 type MessageHandler = (data: any) => void;

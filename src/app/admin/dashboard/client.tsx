@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useWebSocket } from "@/app/providers/websocket";
+
 import {
   FiWifi,
   FiWifiOff,
@@ -21,30 +23,19 @@ interface Scanner {
 
 export default function ScannerClient({ initialScanners }: { initialScanners: Scanner[] }) {
   const [scanners, setScanners] = useState<Scanner[]>(initialScanners);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isConnected, addMessageHandler, removeMessageHandler } = useWebSocket();
   const router = useRouter();
 
- 
-
   useEffect(() => {
-    const ws = new WebSocket("wss://" + process.env.NEXT_PUBLIC_WEBSOCKET + "/client");
-
-    ws.onopen = () => setIsConnected(true);
-    ws.onclose = () => setIsConnected(false);
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "scanner-list") {
-          setScanners(data.scanners || []);
-        }
-      } catch (err) {
-        console.error("WebSocket message error:", err);
+    const handler = (data: any) => {
+      if (data.type === "scanner-list") {
+        setScanners(data.scanners || []);
       }
     };
-
-    return () => ws.close();
-  }, []);
+    addMessageHandler(handler);
+    return () => removeMessageHandler(handler);
+  }, [addMessageHandler, removeMessageHandler]);
+  
 
   return (
     <main className="min-h-screen bg-white p-6">
