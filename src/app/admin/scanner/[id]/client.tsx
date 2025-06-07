@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useWebSocket } from "@/app/providers/websocket";
 import { format } from "date-fns-tz";
 
 interface Scanner {
@@ -10,13 +12,29 @@ interface Scanner {
 }
 
 export default function ScannerDetailClient({
-  scanner,
+  scanner: initialScanner,
   id,
 }: {
   scanner: Scanner | null;
   id: string;
 }) {
-  if (!scanner)
+  const [scanner, setScanner] = useState<Scanner | null>(initialScanner);
+  const { addMessageHandler, removeMessageHandler } = useWebSocket();
+
+  useEffect(() => {
+    const handler = (data: any) => {
+      if (data.type === "scanner-list") {
+        const updatedScanner = data.scanners?.find((s: Scanner) => s.id === id);
+        if (updatedScanner) {
+          setScanner(updatedScanner);
+        }
+      }
+    };
+    addMessageHandler(handler);
+    return () => removeMessageHandler(handler);
+  }, [addMessageHandler, removeMessageHandler, id]);
+
+  if (!scanner) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center p-8 max-w-md">
@@ -33,6 +51,8 @@ export default function ScannerDetailClient({
         </div>
       </div>
     );
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -94,9 +114,11 @@ export default function ScannerDetailClient({
               <div className="text-gray-500 mb-2">No active user session</div>
               <div className="text-sm text-gray-400">
                 This scanner is currently available, last started session:{" "}
-                {format(new Date(scanner.startTime!), "yyyy-MM-dd HH:mm", {
-                  timeZone: "Europe/Stockholm",
-                })}
+                {scanner.startTime
+                  ? format(new Date(scanner.startTime), "yyyy-MM-dd HH:mm", {
+                      timeZone: "Europe/Stockholm",
+                    })
+                  : "N/A"}
               </div>
             </div>
           )}
