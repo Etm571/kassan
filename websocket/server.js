@@ -6,7 +6,6 @@ const bodyParser = require("body-parser");
 const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
 
-
 const app = express();
 
 app.use(
@@ -25,6 +24,16 @@ const wss = new WebSocket.Server({ server });
 const scanners = new Map();
 
 wss.on("connection", (ws, req) => {
+
+  const params = new URLSearchParams(req.url.split("?")[1]);
+  const token = params.get("token");
+
+  if (token !== process.env.AUTH_SECRET) {
+    console.log("Unauthorized");
+    ws.terminate();
+    return;
+  }
+
   ws.id = uuidv4();
   ws.typ = req.url === "/client" ? "client" : "scanner";
   ws.isAlive = true;
@@ -81,7 +90,6 @@ wss.on("connection", (ws, req) => {
           }
         }
       }
-
     } catch (err) {
       console.error("Felaktigt meddelande:", err);
     }
@@ -92,8 +100,7 @@ wss.on("connection", (ws, req) => {
     if (ws.typ === "scanner") {
       scanners.delete(ws.id);
       broadcastScannerList();
-    }
-    else if (ws.typ === "client") {
+    } else if (ws.typ === "client") {
     }
   });
 });
@@ -131,9 +138,17 @@ wss.on("close", () => {
 });
 
 app.post("/assign", (req, res) => {
+  const authSecret = req.headers["x-auth-secret"];
+  if (authSecret !== process.env.AUTH_SECRET) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+
   const { user } = req.body;
 
-  const entry = [...scanners.entries()].find(([_, scanner]) => scanner.status === "free");
+  const entry = [...scanners.entries()].find(
+    ([_, scanner]) => scanner.status === "free"
+  );
 
   if (!entry) {
     return res.status(400).json({ fel: "Ingen ledig scanner tillgänglig" });
@@ -156,7 +171,7 @@ app.post("/assign", (req, res) => {
 
 app.get("/scanners", (req, res) => {
   const authSecret = req.headers["x-auth-secret"];
-  
+
   if (authSecret !== process.env.AUTH_SECRET) {
     return res.status(403).json({ error: "Unauthorized" });
   }
