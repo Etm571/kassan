@@ -12,7 +12,7 @@ export default function ScanSuccessClient({
 }) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      signOut({ callbackUrl: "/" });
+      signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
     }, 5 * 1000);
 
     return () => clearTimeout(timer);

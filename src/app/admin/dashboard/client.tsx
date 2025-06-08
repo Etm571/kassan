@@ -35,7 +35,7 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
     addMessageHandler(handler);
     return () => removeMessageHandler(handler);
   }, [addMessageHandler, removeMessageHandler]);
-  
+
 
   return (
     <main className="min-h-screen bg-white p-6">
@@ -50,9 +50,7 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
             <div className={`flex items-center ${isConnected ? "text-green-500" : "text-red-500"}`}>
               {isConnected ? <FiWifi className="mr-2" /> : <FiWifiOff className="mr-2" />}
               <span className="text-sm">{isConnected ? "Connected" : "Disconnected"}</span>
-            </div>
-
- 
+            </div> 
           </div>
         </div>
 

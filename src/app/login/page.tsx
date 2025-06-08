@@ -53,7 +53,7 @@ export default function SignInPage() {
               <input
                 id="userId"
                 name="userId"
-                type="text"
+                type="number"
                 required
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
