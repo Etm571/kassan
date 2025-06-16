@@ -20,7 +20,7 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
   const handlersRef = useRef<Set<MessageHandler>>(new Set());
 
   useEffect(() => {
-    const ws = new WebSocket("wss://" + process.env.NEXT_PUBLIC_WEBSOCKET + "/client");
+    const ws = new WebSocket("wss://" + process.env.NEXT_PUBLIC_WEBSOCKET + "/client" + "?token=" + encodeURIComponent(process.env.NEXT_PUBLIC_WEBSOCKET_SECRET || ""));
     wsRef.current = ws;
 
     ws.onopen = () => setIsConnected(true);

@@ -47,7 +47,7 @@ wss.on("connection", (ws, req) => {
   }
 
   ws.id = uuidv4();
-  ws.typ = req.url === "/client" ? "client" : "scanner";
+  ws.typ = req.url.startsWith("/client") ? "client" : "scanner";
   ws.isAlive = true;
   ws.isRegistered = false;
 

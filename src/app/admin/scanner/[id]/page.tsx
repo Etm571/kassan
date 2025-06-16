@@ -14,7 +14,7 @@ async function getScanner(id: string): Promise<Scanner | null> {
   try {
     const res = await fetch(`https://${process.env.NEXT_PUBLIC_WEBSOCKET}/scanners`, {
       headers: {
-        "x-auth-secret": process.env.WEBSOCKET_SECRET!,
+        "x-auth-secret": process.env.NEXT_PUBLIC_WEBSOCKET_SECRET!,
         "ngrok-skip-browser-warning": "true",
       },
       cache: "no-store",

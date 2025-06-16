@@ -9,7 +9,7 @@ export default async function Page() {
 async function getScannersSecurely() {
   const res = await fetch("https://" + process.env.NEXT_PUBLIC_WEBSOCKET + "/scanners" as string, {
     headers: {
-      "x-auth-secret": process.env.WEBSOCKET_SECRET!,
+      "x-auth-secret": process.env.NEXT_PUBLIC_WEBSOCKET_SECRET!,
     },
     cache: "no-store",
   });

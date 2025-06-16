@@ -35,6 +35,7 @@ export default async function ScanSuccessPage() {
           headers: {
             "Content-Type": "application/json",
             "ngrok-skip-browser-warning": "true",
+            "x-auth-secret": process.env.NEXT_PUBLIC_WEBSOCKET_SECRET!,
           },
           body: JSON.stringify({ user }),
         }
