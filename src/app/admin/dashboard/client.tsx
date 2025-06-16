@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useWebSocket } from "@/app/providers/websocket";
+import { useRouter } from "next/navigation";
 import {
   FiWifi,
   FiWifiOff,
@@ -19,6 +20,7 @@ interface Scanner {
 export default function ScannerClient({ initialScanners }: { initialScanners: Scanner[] }) {
   const [scanners, setScanners] = useState<Scanner[]>(initialScanners);
   const { isConnected, addMessageHandler, removeMessageHandler } = useWebSocket();
+  const router = useRouter();
 
   useEffect(() => {
     const handler = (data: any) => {
@@ -30,7 +32,6 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
     return () => removeMessageHandler(handler);
   }, [addMessageHandler, removeMessageHandler]);
 
-  // Calculate scanner counts
   const activeCount = scanners.filter(s => s.status === "occupied").length;
   const totalCount = scanners.length;
   const freeCount = totalCount - activeCount;
@@ -52,7 +53,6 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
           </div>
         </div>
 
-        {/* Scanner Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-blue-50 rounded-xl p-5 border border-blue-100 shadow-sm">
             <div className="flex items-center justify-between">
@@ -97,10 +97,11 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
             </div>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 cursor-pointer">
             {scanners.map(scanner => (
               <div 
                 key={scanner.id}
+                onClick={() => router.push(`/admin/scanner/${scanner.id}`)} 
                 className={`p-4 rounded-lg flex flex-col items-center justify-center ${
                   scanner.status === "occupied" 
                     ? "bg-yellow-100 border border-yellow-200" 
@@ -115,7 +116,7 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
                     : <FiCheckCircle className="text-green-600 text-xl" />
                   }
                 </div>
-                <span className="mt-2 font-medium text-gray-800">{scanner.id}</span>
+                <span className="mt-2 font-medium text-gray-800">{scanner.id.slice(0, 8)}</span>
                 <span className={`text-xs mt-1 ${
                   scanner.status === "occupied" ? "text-yellow-700" : "text-green-700"
                 }`}>

@@ -40,7 +40,7 @@ export default function AdminLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
+              <h1 className="text-xl font-bold text-gray-800">Kassan - Admin</h1>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
               {navLinks.map((link) => (
