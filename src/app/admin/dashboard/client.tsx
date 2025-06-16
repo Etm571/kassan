@@ -60,7 +60,7 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
               <FiRadio className="text-blue-500 text-xl" />
             </div>
             <p className="text-3xl font-bold mt-2 text-blue-900">{totalCount}</p>
-            <p className="text-sm text-blue-700 mt-1">All available devices</p>
+            <p className="text-sm text-blue-700 mt-1">All connected devices</p>
           </div>
 
           <div className="bg-yellow-50 rounded-xl p-5 border border-yellow-100 shadow-sm">
@@ -88,21 +88,21 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
             <div className="flex items-center space-x-2">
               <div className="flex items-center">
                 <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-                <span className="text-sm">Active</span>
+                <span className="text-sm text-gray-600">Active</span>
               </div>
               <div className="flex items-center ml-3">
                 <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                <span className="text-sm">Available</span>
+                <span className="text-sm text-gray-600">Available</span>
               </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 cursor-pointer">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {scanners.map(scanner => (
               <div 
                 key={scanner.id}
                 onClick={() => router.push(`/admin/scanner/${scanner.id}`)} 
-                className={`p-4 rounded-lg flex flex-col items-center justify-center ${
+                className={`p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer ${
                   scanner.status === "occupied" 
                     ? "bg-yellow-100 border border-yellow-200" 
                     : "bg-green-100 border border-green-200"
