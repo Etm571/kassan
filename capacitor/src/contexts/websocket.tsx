@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
 
 interface WebSocketContextValue {
@@ -16,7 +22,9 @@ export const useWebSocket = (): WebSocketContextValue => {
   return ctx;
 };
 
-export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
+  children,
+}) => {
   const [connected, setConnected] = useState<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef<number>(0);
@@ -30,7 +38,10 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({ child
 
     const storedHostname =
       localStorage.getItem("websocketUrl") || import.meta.env.VITE_WEBSOCKET;
-    const url = `wss://${storedHostname}`;
+    const secret = import.meta.env.VITE_WEBSOCKET_SECRET || "";
+    const encodedSecret = encodeURIComponent(secret);
+    const url = `wss://${storedHostname}?token=${encodedSecret}`;
+
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
@@ -96,7 +107,6 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({ child
         wsRef.current.close();
       }
     };
-
   }, []);
 
   const sendMessage = (msg: any) => {

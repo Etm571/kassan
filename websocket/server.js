@@ -24,12 +24,24 @@ const wss = new WebSocket.Server({ server });
 const scanners = new Map();
 
 wss.on("connection", (ws, req) => {
-
-  const params = new URLSearchParams(req.url.split("?")[1]);
-  const token = params.get("token");
+  let token = null;
+  const queryIndex = req.url.indexOf("?");
+  if (queryIndex !== -1) {
+    const queryString = req.url.slice(queryIndex + 1);
+    const params = queryString.split("&");
+    for (const param of params) {
+      const [key, value] = param.split("=");
+      if (key === "token" && value) {
+        token = decodeURIComponent(value);
+        break;
+      }
+    }
+  }
 
   if (token !== process.env.AUTH_SECRET) {
-    console.log("Unauthorized");
+    console.log("Unauthorized, ", req.url);
+    console.log("Token:", token);
+    console.log("Expected:", process.env.AUTH_SECRET);
     ws.terminate();
     return;
   }
@@ -105,6 +117,7 @@ wss.on("connection", (ws, req) => {
   });
 });
 
+
 function broadcastScannerList() {
   const scannerData = [...scanners.entries()].map(([id, scanner]) => ({
     id,
@@ -142,7 +155,6 @@ app.post("/assign", (req, res) => {
   if (authSecret !== process.env.AUTH_SECRET) {
     return res.status(403).json({ error: "Unauthorized" });
   }
-
 
   const { user } = req.body;
 
