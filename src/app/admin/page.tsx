@@ -15,13 +15,13 @@ export default async function AdminHome() {
     {
       name: "Add Members",
       description: "Register new users to the system",
-      href: "/admin/addMembers",
+      href: "/admin/management/users",
       icon: <FiUsers className="text-2xl text-green-600" />,
     },
     {
       name: "Manage Items",
       description: "Add, update, or remove inventory items",
-      href: "/admin/items",
+      href: "/admin/management/items",
       icon: <FiPackage className="text-2xl text-yellow-600" />,
     },
     {

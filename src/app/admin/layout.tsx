@@ -38,12 +38,12 @@ export default function AdminLayout({
       subLinks: [
         {
           name: "Manage Members",
-          href: "/admin/addMembers",
+          href: "/admin/management/users",
           icon: <FiUsers className="mr-1" />,
         },
         {
           name: "Manage Items",
-          href: "/admin/items",
+          href: "/admin/management/items",
           icon: <FiPackage className="mr-1" />,
         },
       ],
