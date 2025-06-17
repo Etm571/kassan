@@ -59,6 +59,8 @@ export async function GET(req: Request): Promise<Response> {
         name: true,
         role: true,
         createdAt: true,
+        suspended: true,
+
       },
     });
 
@@ -91,10 +93,48 @@ export async function PUT(req: Request): Promise<Response> {
         email: true,
         name: true,
         role: true,
+        suspended: true,
       },
     });
 
     return NextResponse.json({ success: true, user }, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message || "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: Request): Promise<Response> {
+  try {
+    const { id, suspended } = await req.json();
+
+    if (typeof id === 'undefined' || typeof suspended === 'undefined') {
+      return NextResponse.json(
+        { error: "ID and suspended status are required." },
+        { status: 400 }
+      );
+    }
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: { suspended },
+      select: {
+        id: true,
+        userId: true,
+        email: true,
+        name: true,
+        role: true,
+        suspended: true,
+      },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      user,
+      message: user.suspended ? "User suspended successfully" : "User unsuspended successfully"
+    }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
