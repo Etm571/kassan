@@ -25,12 +25,12 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        setError('Ogiltigt användar-ID. Var god försök igen.');
+        setError('Invalid user ID. Please try again.');
       } else {
         router.push(callbackUrl);
       }
     } catch (err) {
-      setError('Ett oväntat fel inträffade. Var god försök igen.');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -41,14 +41,14 @@ export default function SignInPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Logga in med ditt användar-ID
+            Sign in with your user ID
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="userId" className="sr-only">
-                Användar-ID
+                User ID
               </label>
               <input
                 id="userId"
@@ -58,7 +58,7 @@ export default function SignInPage() {
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Ange ditt användar-ID"
+                placeholder="Enter your user ID"
                 disabled={isLoading}
               />
             </div>
@@ -98,10 +98,10 @@ export default function SignInPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Loggar in...
+                  Signing in...
                 </span>
               ) : (
-                'Logga in'
+                'Sign in'
               )}
             </button>
           </div>

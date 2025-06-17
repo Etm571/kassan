@@ -51,7 +51,7 @@ wss.on("connection", (ws, req) => {
   ws.isAlive = true;
   ws.isRegistered = false;
 
-  console.log(`Ny ${ws.typ} anslutning: ${ws.id}`);
+  console.log(`New ${ws.typ} connection: ${ws.id}`);
 
   const registerTimeout = setTimeout(() => {
     if (ws.typ === "scanner" && !ws.isRegistered) {
@@ -61,7 +61,7 @@ wss.on("connection", (ws, req) => {
 
   ws.on("pong", () => {
     ws.isAlive = true;
-    console.log(`Pong mottaget från ${ws.typ}: ${ws.id}`);
+    console.log(`Pong received from ${ws.typ}: ${ws.id}`);
   });
 
   ws.on("message", (msg) => {
@@ -76,7 +76,7 @@ wss.on("connection", (ws, req) => {
         });
         ws.isRegistered = true;
         broadcastScannerList();
-        console.log(`Scanner registrerad: ${ws.id}`);
+        console.log(`Scanner registered: ${ws.id}`);
       }
 
       if (data.type === "free") {
@@ -103,7 +103,7 @@ wss.on("connection", (ws, req) => {
         }
       }
     } catch (err) {
-      console.error("Felaktigt meddelande:", err);
+      console.error("Invalid message:", err);
     }
   });
 
@@ -112,11 +112,9 @@ wss.on("connection", (ws, req) => {
     if (ws.typ === "scanner") {
       scanners.delete(ws.id);
       broadcastScannerList();
-    } else if (ws.typ === "client") {
     }
   });
 });
-
 
 function broadcastScannerList() {
   const scannerData = [...scanners.entries()].map(([id, scanner]) => ({
@@ -163,7 +161,7 @@ app.post("/assign", (req, res) => {
   );
 
   if (!entry) {
-    return res.status(400).json({ fel: "Ingen ledig scanner tillgänglig" });
+    return res.status(400).json({ error: "No available scanner" });
   }
 
   const [scannerId, scannerData] = entry;
@@ -175,9 +173,9 @@ app.post("/assign", (req, res) => {
     scannerData.startTime = new Date().toISOString();
 
     broadcastScannerList();
-    return res.json({ skickadTill: scannerId });
+    return res.json({ assignedTo: scannerId });
   } catch (err) {
-    return res.status(500).json({ fel: "Kunde inte skicka till scanner" });
+    return res.status(500).json({ error: "Failed to send to scanner" });
   }
 });
 
@@ -200,5 +198,5 @@ app.get("/scanners", (req, res) => {
 });
 
 server.listen(8080, () => {
-  console.log("Servern lyssnar på port 8080");
+  console.log("Server listening on port 8080");
 });

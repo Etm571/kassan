@@ -29,7 +29,7 @@ export default function AddMembers() {
       router.refresh();
     } else {
       const data = await res.json();
-      setError(data.error || "Något gick fel");
+      setError(data.error || "Something went wrong");
     }
   };
 
@@ -37,7 +37,7 @@ export default function AddMembers() {
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full border border-gray-200">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-          Lägg till användare
+          Add User
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -64,12 +64,12 @@ export default function AddMembers() {
               htmlFor="name"
               className="block text-sm font-medium text-gray-800 mb-2"
             >
-              Namn
+              Name
             </label>
             <input
               type="text"
               id="name"
-              placeholder="För- och efternamn"
+              placeholder="First and Last Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-3 border border-gray-400 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 
@@ -83,13 +83,13 @@ export default function AddMembers() {
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition duration-200 
                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Lägg till användare
+            Add User
           </button>
 
           <div className="min-h-[48px]">
             {userId && (
               <p className="text-green-700 font-medium bg-green-100 py-2 px-3 rounded-lg">
-                Användare skapad med ID:{" "}
+                User created with ID:{" "}
                 <span className="font-mono break-all text-gray-900">{userId}</span>
               </p>
             )}
