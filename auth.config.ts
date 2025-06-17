@@ -65,8 +65,10 @@ export const authOptions: NextAuthOptions = {
 
           if (!user) return null;
 
+          if (user.suspended) return null;
 
-          let generatedToken = user.token;
+
+        let generatedToken = user.token;
 
          if (!user.token || !user.tokenExpiry || user.tokenExpiry < new Date()) {
           generatedToken = crypto.randomBytes(16).toString("hex");
@@ -77,10 +79,7 @@ export const authOptions: NextAuthOptions = {
               tokenExpiry: new Date(Date.now() + 4 * 60 * 60 * 1000),
             },
           });
-
          }
-          
-
           return {
             ...user,
             id: user.id.toString(),

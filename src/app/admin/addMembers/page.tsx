@@ -9,6 +9,7 @@ type User = {
   name: string;
   role: string;
   createdAt: string;
+  suspended?: boolean;
 };
 
 export default function UserManagement() {
@@ -27,7 +28,7 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     const res = await fetch("/api/admin/users");
     const data = await res.json();
-    setUsers(data);
+    setUsers(Array.isArray(data) ? data : []);
   };
 
   const filteredUsers = useMemo(() => {
@@ -96,6 +97,40 @@ export default function UserManagement() {
       setMessage(`Error: ${error.error || "Failed to delete user"}`);
     }
   };
+
+  const handleSuspend = async (user: User) => {
+  const confirmed = confirm(
+    user.suspended
+      ? "Unsuspend this user?"
+      : "Suspend this user? Suspended users cannot log in."
+  );
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch(`/api/admin/users`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        id: user.id, 
+        suspended: !user.suspended 
+      }),
+    });
+
+    if (res.ok) {
+      setMessage(
+        user.suspended
+          ? "User unsuspended successfully"
+          : "User suspended successfully"
+      );
+      fetchUsers();
+    } else {
+      const error = await res.json();
+      setMessage(`Error: ${error.error || "Failed to update suspension"}`);
+    }
+  } catch (error) {
+    setMessage("Network error occurred while updating suspension status");
+  }
+};
 
   const handleUserChange = (id: string, field: keyof User, value: string) => {
     setUsers((prev) =>
@@ -217,6 +252,13 @@ export default function UserManagement() {
                     title="Update"
                   >
                     <FiSave size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleSuspend(user)}
+                    className={`p-2 rounded ${user.suspended ? "text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50" : "text-gray-500 hover:text-yellow-600 hover:bg-yellow-50"}`}
+                    title={user.suspended ? "Unsuspend" : "Suspend"}
+                  >
+                    {user.suspended ? "🔒" : "🔓"}
                   </button>
                   <button
                     onClick={() => handleDelete(user.id)}
