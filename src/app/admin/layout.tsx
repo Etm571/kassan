@@ -37,7 +37,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-gray-800">Kassan - Admin</h1>
@@ -62,7 +62,6 @@ export default function AdminLayout({
         </div>
       </nav>
 
-      {/* Page Content */}
       <main className="flex-grow p-4 sm:p-6 lg:p-8">{children}</main>
     </div>
   );
