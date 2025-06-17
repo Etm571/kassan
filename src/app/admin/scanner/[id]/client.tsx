@@ -27,7 +27,6 @@ export default function ScannerDetailClient({
       return;
     };
     send({ type: "free", id: scanner.id });
-    console.log(`Terminated scanner ${scanner.id}`);
   };
 
   useEffect(() => {
@@ -72,7 +71,6 @@ export default function ScannerDetailClient({
             <span className="ml-2 font-mono bg-gray-100 px-3 py-1 rounded-lg text-gray-800">
               {scanner.id}
             </span>
-            {/* Terminate button */}
             {scanner.status === "occupied" && (
               <button
                 onClick={handleTerminate}
