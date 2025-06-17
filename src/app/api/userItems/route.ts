@@ -177,16 +177,19 @@ export async function DELETE(req: NextRequest) {
     });
 
     await Promise.all(
-      scannedItems.map(({ itemId, quantity }) =>
-        prisma.item.update({
+      scannedItems.map(async ({ itemId, quantity }) => {
+        const item = await prisma.item.findUnique({ where: { id: itemId } });
+        if (!item) return;
+
+        const newStock = Math.max((item.stock ?? 0) - quantity, 0);
+
+        await prisma.item.update({
           where: { id: itemId },
           data: {
-            stock: {
-              decrement: quantity,
-            },
+            stock: newStock,
           },
-        })
-      )
+        });
+      })
     );
 
     await prisma.scannedItem.deleteMany({
