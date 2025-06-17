@@ -87,8 +87,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-
-
     return NextResponse.json(
       { success: true, message: "Items saved successfully" },
       { status: 200, headers: corsHeaders }
@@ -169,6 +167,27 @@ export async function DELETE(req: NextRequest) {
         { status: 403, headers: corsHeaders }
       );
     }
+
+    const scannedItems = await prisma.scannedItem.findMany({
+      where: { userId: user.id },
+      select: {
+        itemId: true,
+        quantity: true,
+      },
+    });
+
+    await Promise.all(
+      scannedItems.map(({ itemId, quantity }) =>
+        prisma.item.update({
+          where: { id: itemId },
+          data: {
+            stock: {
+              decrement: quantity,
+            },
+          },
+        })
+      )
+    );
 
     await prisma.scannedItem.deleteMany({
       where: { userId: user.id },
