@@ -298,6 +298,7 @@ html, body {
 .time-display-bubble {
   position: fixed;
   left: 50%;
+  top: 1%;
   transform: translateX(-50%);
   background: rgba(255,255,255,0.95);
   color: #222;
