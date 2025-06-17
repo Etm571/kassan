@@ -42,7 +42,7 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <FiRadio className="text-blue-500 text-3xl" />
-            <h1 className="text-2xl font-semibold text-gray-800">Scanner Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
           </div>
           
           <div className="flex items-center space-x-4">

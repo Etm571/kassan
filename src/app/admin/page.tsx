@@ -32,7 +32,7 @@ export default function AdminHome() {
   ];
 
   return (
-    <div className="max-w-xl w-full bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+    <div className="max-w-xl w-full m-auto">
       <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome Admin</h1>
       <p className="text-gray-500 mb-8 text-center">
         Quick access to all administrative features.
