@@ -27,6 +27,7 @@ export async function GET() {
       barcode: true,
       price: true,
       imagePath: true,
+      stock: true
     },
   });
 

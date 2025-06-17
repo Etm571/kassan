@@ -40,11 +40,11 @@ model Item {
   name        String
   barcode     String        @unique
   price       Decimal       @db.Decimal(10, 2)
+  stock       Int           @default(0)
   imagePath   String?
 
   scannedItems ScannedItem[]
 }
-
 
 model ScannedItem {
   id        Int       @id @default(autoincrement())
