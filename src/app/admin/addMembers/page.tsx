@@ -5,6 +5,7 @@ import { FiPlus, FiSave, FiTrash2, FiEdit2, FiSearch, FiChevronLeft, FiChevronRi
 
 type User = {
   id: string;
+  userId: string;
   email: string;
   name: string;
   role: string;
@@ -34,7 +35,8 @@ export default function UserManagement() {
   const filteredUsers = useMemo(() => {
     return users.filter(user => 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.userId.includes(searchTerm)
     );
   }, [users, searchTerm]);
 
@@ -99,38 +101,38 @@ export default function UserManagement() {
   };
 
   const handleSuspend = async (user: User) => {
-  const confirmed = confirm(
-    user.suspended
-      ? "Unsuspend this user?"
-      : "Suspend this user? Suspended users cannot log in."
-  );
-  if (!confirmed) return;
+    const confirmed = confirm(
+      user.suspended
+        ? "Unsuspend this user?"
+        : "Suspend this user? Suspended users cannot log in."
+    );
+    if (!confirmed) return;
 
-  try {
-    const res = await fetch(`/api/admin/users`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        id: user.id, 
-        suspended: !user.suspended 
-      }),
-    });
+    try {
+      const res = await fetch(`/api/admin/users`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          id: user.id, 
+          suspended: !user.suspended 
+        }),
+      });
 
-    if (res.ok) {
-      setMessage(
-        user.suspended
-          ? "User unsuspended successfully"
-          : "User suspended successfully"
-      );
-      fetchUsers();
-    } else {
-      const error = await res.json();
-      setMessage(`Error: ${error.error || "Failed to update suspension"}`);
+      if (res.ok) {
+        setMessage(
+          user.suspended
+            ? "User unsuspended successfully"
+            : "User suspended successfully"
+        );
+        fetchUsers();
+      } else {
+        const error = await res.json();
+        setMessage(`Error: ${error.error || "Failed to update suspension"}`);
+      }
+    } catch (error) {
+      setMessage("Network error occurred while updating suspension status");
     }
-  } catch (error) {
-    setMessage("Network error occurred while updating suspension status");
-  }
-};
+  };
 
   const handleUserChange = (id: string, field: keyof User, value: string) => {
     setUsers((prev) =>
@@ -192,19 +194,22 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {message && (
-        <div className={`mb-4 p-3 rounded ${message.includes("Error") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-          {message}
-        </div>
-      )}
+      <div style={{ minHeight: "2.8rem", marginBottom: "1rem" }}>
+        {message && (
+          <div className={`p-3 rounded ${message.includes("Error") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+            {message}
+          </div>
+        )}
+      </div>
 
       <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="min-w-full">
           <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 p-3 font-medium text-gray-700 gap-4">
-            <div className="col-span-3">Name</div>
-            <div className="col-span-4">Email</div>
+            <div className="col-span-2">ID</div>
+            <div className="col-span-2">Name</div>
+            <div className="col-span-3">Email</div>
             <div className="col-span-2">Role</div>
-            <div className="col-span-2">Created</div>
+            <div className="col-span-1">Created</div>
             <div className="col-span-1">Actions</div>
           </div>
 
@@ -215,7 +220,15 @@ export default function UserManagement() {
           ) : (
             paginatedUsers.map((user) => (
               <div key={user.id} className="grid grid-cols-12 border-b border-gray-100 hover:bg-gray-50 p-3 items-center gap-4">
-                <div className="col-span-3">
+                <div className="col-span-2">
+                  <input
+                    type="text"
+                    value={user.userId}
+                    readOnly
+                    className="w-full p-2 border rounded text-sm bg-gray-100 cursor-not-allowed text-gray-500 truncate"
+                  />
+                </div>
+                <div className="col-span-2">
                   <input
                     type="text"
                     value={user.name}
@@ -223,7 +236,7 @@ export default function UserManagement() {
                     className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
-                <div className="col-span-4">
+                <div className="col-span-3">
                   <input
                     type="email"
                     value={user.email}
@@ -242,7 +255,7 @@ export default function UserManagement() {
                     <option value="ADMIN">Admin</option>
                   </select>
                 </div>
-                <div className="col-span-2 text-sm text-gray-500">
+                <div className="col-span-1 text-sm text-gray-500">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </div>
                 <div className="col-span-1 flex space-x-2">
