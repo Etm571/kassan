@@ -19,6 +19,7 @@ export default function ScannerView() {
   const [scanLog, setScanLog] = useState<string[]>([]);
   const clickCountRef = useRef(0);
   const [showLog, setShowLog] = useState(false);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
 
   const location = useLocation();
   const state = location.state as {
@@ -45,9 +46,6 @@ export default function ScannerView() {
       }, 10000);
     }
   };
-
-  //const userId = state?.userId || "unknown-id";
-  //const userName = state?.userName || "unknown user";
 
   useEffect(() => {
     if (state?.itemCacheEntries) {
@@ -110,7 +108,7 @@ export default function ScannerView() {
     token: state?.token || "unknown-token",
     log: (msg: string) => setScanLog((prev) => [...prev, msg]),
     navigate: () => {
-      navigate("/")
+      navigate("/");
     },
   });
 
@@ -170,6 +168,20 @@ export default function ScannerView() {
     0
   );
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString("sv-SE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: undefined,
+    });
+
   return (
     <div className="container">
       {showRemoveOverlay && (
@@ -226,6 +238,15 @@ export default function ScannerView() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="time-display-bubble" style={{ display: "flex", alignItems: "center" }}>
+        <img
+          src="/clock.png"
+          alt="clock"
+          style={{ width: 18, height: 18, marginRight: 8 }}
+        />
+        <span>{formatTime(currentTime)}</span>
       </div>
 
       <div className="summary-footer">
