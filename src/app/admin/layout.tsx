@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FiUsers, FiPackage, FiRadio, FiHome } from "react-icons/fi";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 export default function AdminLayout({
   children,
@@ -34,6 +35,7 @@ export default function AdminLayout({
 
   const pathname = usePathname();
 
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <nav className="bg-white shadow-sm">
@@ -59,6 +61,12 @@ export default function AdminLayout({
                   {link.name}
                 </Link>
               ))}
+              <button
+                onClick={() => signOut({ callbackUrl: "/admin" })}
+                className="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>

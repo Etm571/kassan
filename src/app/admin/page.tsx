@@ -1,9 +1,10 @@
-"use client";
-
 import Link from "next/link";
 import { FiUsers, FiPackage, FiRadio, FiHome } from "react-icons/fi";
+import { auth } from "@/../auth.config";
 
-export default function AdminHome() {
+export default async function AdminHome() {
+  const session = await auth();
+
   const features = [
     {
       name: "Dashboard",
@@ -33,7 +34,9 @@ export default function AdminHome() {
 
   return (
     <div className="max-w-xl w-full m-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome Admin</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">
+        Welcome{session?.user?.name ? `, ${session.user.name}` : " Admin"}
+      </h1>
       <p className="text-gray-500 mb-8 text-center">
         Quick access to all administrative features.
       </p>
