@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FiPlus, FiSave, FiTrash2, FiEdit2, FiDollarSign, FiImage, FiCode, FiPackage } from "react-icons/fi";
+import { useState, useEffect, useMemo } from "react";
+import { FiPlus, FiSave, FiTrash2, FiEdit2, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 type Item = {
   id: number;
@@ -18,12 +18,28 @@ export default function AdminItemForm() {
   const [price, setPrice] = useState("");
   const [message, setMessage] = useState("");
   const [items, setItems] = useState<Item[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     fetch("/api/public/items")
       .then((res) => res.json())
       .then(setItems);
   }, []);
+
+  const filteredItems = useMemo(() => {
+    return items.filter(item => 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.barcode.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [items, searchTerm]);
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredItems, currentPage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +60,7 @@ export default function AdminItemForm() {
         res.json()
       );
       setItems(updatedItems);
+      setCurrentPage(1);
     } else {
       const error = await res.json();
       setMessage(`Error: ${error.error || "Failed to add item"}`);
@@ -91,155 +108,181 @@ export default function AdminItemForm() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-sm text-gray-600 placeholder-black">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Inventory Management</h1>
-      
-      <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm mb-8">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-          <FiPlus className="mr-2" /> Add New Item
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <FiPackage className="text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Item name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="flex-1 outline-none"
-              required
-            />
-          </div>
-          
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <FiCode className="text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Barcode"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
-              className="flex-1 outline-none"
-              required
-            />
-          </div>
-          
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <FiDollarSign className="text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Price"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="flex-1 outline-none"
-            />
-          </div>
-          
-          <div className="flex items-center border-b border-gray-200 py-2">
-            <FiImage className="text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Image URL (optional)"
-              value={imagePath}
-              onChange={(e) => setImagePath(e.target.value)}
-              className="flex-1 outline-none"
-            />
-          </div>
-          
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition flex items-center justify-center"
-          >
-            <FiSave className="mr-2" /> Save Item
-          </button>
-        </form>
-
-        {message && (
-          <div className={`mt-4 p-3 rounded ${message.includes("Error") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-            {message}
-          </div>
-        )}
+    <div className="max-w-full mx-auto p-4 bg-white text-gray-600 placeholder-gray-500">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">Inventory</h1>
+        <div className="relative w-64">
+          <FiSearch className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search items..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-        <h3 className="text-lg font-semibold text-gray-700 p-4 border-b flex items-center">
-          <FiPackage className="mr-2" /> Current Inventory ({items.length})
-        </h3>
-        
-        {items.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            No items found. Add your first item above.
+      <div className="grid grid-cols-12 gap-2 mb-4 items-end">
+        <div className="col-span-3">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input
+            type="text"
+            placeholder="Item name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Barcode</label>
+          <input
+            type="text"
+            placeholder="Barcode"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+          <input
+            type="text"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+        <div className="col-span-3">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+          <input
+            type="text"
+            placeholder="Image URL (optional)"
+            value={imagePath}
+            onChange={(e) => setImagePath(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+        <div className="col-span-2">
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition flex items-center justify-center"
+          >
+            <FiPlus className="mr-2" /> Add Item
+          </button>
+        </div>
+      </div>
+
+      {message && (
+        <div className={`mb-4 p-3 rounded ${message.includes("Error") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+          {message}
+        </div>
+      )}
+
+      <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="min-w-full">
+          <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 p-3 font-medium text-gray-700">
+            <div className="col-span-4">Name</div>
+            <div className="col-span-2">Barcode</div>
+            <div className="col-span-2">Price</div>
+            <div className="col-span-3">Image URL</div>
+            <div className="col-span-1">Actions</div>
           </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {items.map((item) => (
-              <div key={item.id} className="p-4 hover:bg-gray-50 transition">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                  <div>
-                    <label className="text-xs text-gray-500">Name</label>
-                    <input
-                      type="text"
-                      value={item.name}
-                      onChange={(e) =>
-                        handleItemChange(item.id, "name", e.target.value)
-                      }
-                      className="w-full border p-2 rounded text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Barcode</label>
-                    <input
-                      type="text"
-                      value={item.barcode}
-                      onChange={(e) =>
-                        handleItemChange(item.id, "barcode", e.target.value)
-                      }
-                      className="w-full border p-2 rounded text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Price</label>
-                    <input
-                      type="text"
-                      value={item.price || ""}
-                      onChange={(e) =>
-                        handleItemChange(item.id, "price", e.target.value)
-                      }
-                      className="w-full border p-2 rounded text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Image URL</label>
-                    <input
-                      type="text"
-                      value={item.imagePath || ""}
-                      onChange={(e) =>
-                        handleItemChange(item.id, "imagePath", e.target.value)
-                      }
-                      className="w-full border p-2 rounded text-sm"
-                      placeholder="Image URL"
-                    />
-                  </div>
+
+          {paginatedItems.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">
+              {searchTerm ? "No matching items found" : "No items found. Add your first item above."}
+            </div>
+          ) : (
+            paginatedItems.map((item) => (
+              <div key={item.id} className="grid grid-cols-12 border-b border-gray-100 hover:bg-gray-50 p-3 items-center">
+                <div className="col-span-4 mr-5">
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={(e) => handleItemChange(item.id, "name", e.target.value)}
+                    className="w-full p-1 border rounded text-sm focus:outline-none focus:border-blue-500"
+                  />
                 </div>
-                
-                <div className="flex justify-end space-x-2">
+                <div className="col-span-2 mr-5">
+                  <input
+                    type="text"
+                    value={item.barcode}
+                    onChange={(e) => handleItemChange(item.id, "barcode", e.target.value)}
+                    className="w-full p-1 border rounded text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="col-span-2 mr-5">
+                  <input
+                    type="text"
+                    value={item.price || ""}
+                    onChange={(e) => handleItemChange(item.id, "price", e.target.value)}
+                    className="w-full p-1 border rounded text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="col-span-3 mr-5">
+                  <input
+                    type="text"
+                    value={item.imagePath || ""}
+                    onChange={(e) => handleItemChange(item.id, "imagePath", e.target.value)}
+                    className="w-full p-1 border rounded text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="No image"
+                  />
+                </div>
+                <div className="col-span-1 flex space-x-1">
                   <button
                     onClick={() => handleUpdate(item)}
-                    className="flex items-center bg-green-500 text-white py-1 px-3 rounded text-sm hover:bg-green-600 transition"
+                    className="p-1 text-blue-600 hover:text-blue-800 rounded hover:bg-blue-50"
+                    title="Update"
                   >
-                    <FiEdit2 className="mr-1" /> Update
+                    <FiSave size={16} />
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="flex items-center bg-red-500 text-white py-1 px-3 rounded text-sm hover:bg-red-600 transition"
+                    className="p-1 text-red-600 hover:text-red-800 rounded hover:bg-red-50"
+                    title="Delete"
                   >
-                    <FiTrash2 className="mr-1" /> Delete
+                    <FiTrash2 size={16} />
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-4">
+          <div className="text-sm text-gray-500">
+            Showing {paginatedItems.length} of {filteredItems.length} items
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
+              <FiChevronLeft />
+            </button>
+            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-md">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
+              <FiChevronRight />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
