@@ -28,6 +28,7 @@ export default function StockManagement() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const itemsPerPage = 20;
+  const [stockInputs, setStockInputs] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
     fetchItems();
@@ -90,24 +91,6 @@ export default function StockManagement() {
     }
   };
 
-  const handleManualStockUpdate = async (
-    itemId: number,
-    e: React.FocusEvent<HTMLInputElement>
-  ) => {
-    try {
-      const value = parseInt(e.target.value);
-      if (!isNaN(value)) {
-        const currentItem = items.find((item) => item.id === itemId);
-        if (!currentItem) return;
-
-        const delta = value - currentItem.stock;
-        await handleStockChange(itemId, delta);
-      }
-    } catch (error) {
-      setMessage("Failed to update stock");
-    }
-  };
-
   return (
     <div className="max-w-full mx-auto p-4 bg-white">
       <div className="flex justify-between items-center mb-4">
@@ -140,17 +123,19 @@ export default function StockManagement() {
         </div>
       </div>
 
-      {message && (
-        <div
-          className={`mb-4 p-3 rounded ${
-            message.includes("Error")
-              ? "bg-red-100 text-red-700"
-              : "bg-green-100 text-green-700"
-          }`}
-        >
-          {message}
-        </div>
-      )}
+      <div className="h-12 mb-4">
+        {message && (
+          <div
+            className={`p-3 rounded transition-all duration-300 ${
+              message.includes("Error")
+                ? "bg-red-100 text-red-700"
+                : "bg-green-100 text-green-700"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+      </div>
 
       <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="min-w-full">
@@ -192,21 +177,48 @@ export default function StockManagement() {
                     </button>
                     <input
                       type="number"
-                      value={item.stock}
-                      onBlur={(e) => handleManualStockUpdate(item.id, e)}
+                      value={
+                        stockInputs[item.id] !== undefined
+                          ? stockInputs[item.id]
+                          : item.stock.toString()
+                      }
                       onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        if (!isNaN(value)) {
-                          setItems((prev) =>
-                            prev.map((i) =>
-                              i.id === item.id ? { ...i, stock: value } : i
-                            )
-                          );
+                        setStockInputs((prev) => ({
+                          ...prev,
+                          [item.id]: e.target.value,
+                        }));
+                      }}
+                      onBlur={async (e) => {
+                        const rawInput = stockInputs[item.id];
+                        if (rawInput === undefined) return;
+
+                        const parsedValue =
+                          rawInput.trim() === ""
+                            ? item.stock
+                            : parseInt(rawInput);
+
+                        if (isNaN(parsedValue) || parsedValue === item.stock) {
+                          setStockInputs((prev) => {
+                            const updated = { ...prev };
+                            delete updated[item.id];
+                            return updated;
+                          });
+                          return;
                         }
+
+                        const delta = parsedValue - item.stock;
+                        await handleStockChange(item.id, delta);
+
+                        setStockInputs((prev) => {
+                          const updated = { ...prev };
+                          delete updated[item.id];
+                          return updated;
+                        });
                       }}
                       className="w-16 p-1 border rounded text-center"
                       min="0"
                     />
+
                     <button
                       onClick={() => handleStockChange(item.id, 1)}
                       className="p-1 bg-gray-200 hover:bg-gray-300 rounded"
