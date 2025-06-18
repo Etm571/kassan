@@ -12,6 +12,10 @@ export default function StopScan({ user }: { user: any }) {
   const [spotCheck, setSpotCheck] = useState<any>(null);
   const [verificationStatus, setVerificationStatus] = useState<{[key: string]: boolean}>({});
   const [isVerifying, setIsVerifying] = useState(false);
+  const [confirmedScan, setConfirmedScan] = useState<boolean | null>(null);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+
+
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -25,7 +29,6 @@ export default function StopScan({ user }: { user: any }) {
           setError(data.error || "Ett fel inträffade");
         } else {
           setItems(data.items);
-          // Check if spot check is required
           if (data.spotCheck) {
             setSpotCheck({
               items: data.spotCheckItems || [],
@@ -42,6 +45,19 @@ export default function StopScan({ user }: { user: any }) {
 
     fetchItems();
   }, [user.userId, user.token]);
+
+  useEffect(() => {
+  if (!loading && !error && items.length > 0 && confirmedScan === null) {
+    const confirmed = window.confirm("Did everything scan correctly?");
+    if (confirmed) {
+      setConfirmedScan(true);
+    } else {
+      alert("Please scan the remaining items and try again.");
+      setConfirmedScan(false);
+    }
+  }
+}, [loading, error, items, confirmedScan]);
+
 
   useEffect(() => {
     if (!loading && !error && items.length === 0 && !spotCheck) {
@@ -90,14 +106,12 @@ export default function StopScan({ user }: { user: any }) {
     
     setIsVerifying(true);
     try {
-      // Check if all items have been verified
       const allVerified = spotCheck.items.every((item: any) => verificationStatus[item.id] !== undefined);
       if (!allVerified) {
         alert("Please verify all items before submitting");
         return;
       }
 
-      // Calculate if the spot check passed (all items verified correctly)
       const passed = spotCheck.items.every((item: any) => verificationStatus[item.id]);
 
       const response = await fetch('/api/userItems', {
@@ -175,7 +189,7 @@ export default function StopScan({ user }: { user: any }) {
     );
   }
 
-  if (spotCheck) {
+  if (spotCheck && confirmedScan === true) {
     return (
       <div className="min-h-screen bg-white">
         <div className="container mx-auto px-4 py-8">
@@ -236,7 +250,14 @@ export default function StopScan({ user }: { user: any }) {
     );
   }
 
+
+  if (confirmedScan !== true) {
+    return null;
+  }
+  
+
   return (
+    
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8 text-center">
