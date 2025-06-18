@@ -133,10 +133,38 @@ export async function GET(req: NextRequest) {
     include: { item: true },
   });
 
-  return NextResponse.json(
-    { items: scannedItems },
-    { status: 200, headers: corsHeaders }
-  );
+  const responseData: any = { items: scannedItems };
+
+  if (!user.spotCheck) {
+
+    const spotCheckProbability = Math.max(0.02, 0.20 - (user.rank * 0.02));
+    
+    if (true) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { spotCheck: true },
+      });
+      
+      const itemsToVerify = [...scannedItems]
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(item => ({
+          id: item.id,
+          barcode: item.item.barcode,
+          name: item.item.name,
+          quantity: item.quantity
+        }));
+      
+      responseData.spotCheck = true;
+      responseData.spotCheckItems = itemsToVerify;
+      responseData.message = "Please verify these random items from your list.";
+    }
+  } else {
+    responseData.spotCheck = true;
+    responseData.message = "You still have pending spot check items to verify.";
+  }
+
+  return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
 }
 
 export async function DELETE(req: NextRequest) {
@@ -207,6 +235,64 @@ export async function DELETE(req: NextRequest) {
     );
   } catch (error) {
     console.error("Error deleting scanned items:", error);
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { userId, token, passed, verifiedItems } = await req.json();
+
+    if (!userId || !token || typeof passed !== 'boolean' || !Array.isArray(verifiedItems)) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const user = await prisma.user.findUnique({ where: { userId } });
+
+    if (!user || user.token !== token) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    if (!user.spotCheck) {
+      return NextResponse.json(
+        { error: "No active spot check" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    let rankChange = 0;
+    if (passed) {
+      rankChange = user.rank < 10 ? 1 : 0;
+    } else {
+      rankChange = user.rank > 1 ? -1 : 0;
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        rank: user.rank + rankChange,
+        spotCheck: false 
+      },
+    });
+
+    return NextResponse.json(
+      { 
+        message: `Spot check ${passed ? 'passed' : 'failed'}. Rank ${rankChange >= 0 ? 'increased' : 'decreased'}.`,
+        newRank: updatedUser.rank 
+      },
+      { status: 200, headers: corsHeaders }
+    );
+  } catch (error) {
+    console.error("Error processing spot check:", error);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500, headers: corsHeaders }

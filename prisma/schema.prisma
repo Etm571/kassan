@@ -30,6 +30,8 @@ model User {
   token       String?
   tokenExpiry DateTime?
   active      Boolean      @default(false)
+  rank       Int          @default(1)
+  spotCheck Boolean @default(false)
   scannedItems ScannedItem[]
   createdAt DateTime @default(now())
   suspended Boolean @default(false)

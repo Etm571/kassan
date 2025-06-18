@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { signOut } from "next-auth/react";
 
-
-
 export default function StopScan({ user }: { user: any }) {
   const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [spotCheck, setSpotCheck] = useState<any>(null);
+  const [verificationStatus, setVerificationStatus] = useState<{[key: string]: boolean}>({});
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -24,6 +25,13 @@ export default function StopScan({ user }: { user: any }) {
           setError(data.error || "Ett fel inträffade");
         } else {
           setItems(data.items);
+          // Check if spot check is required
+          if (data.spotCheck) {
+            setSpotCheck({
+              items: data.spotCheckItems || [],
+              message: data.message || "Please verify these items"
+            });
+          }
         }
       } catch {
         setError("Kunde inte hämta data");
@@ -35,45 +43,95 @@ export default function StopScan({ user }: { user: any }) {
     fetchItems();
   }, [user.userId, user.token]);
 
-
   useEffect(() => {
-    if (!loading && !error && items.length === 0) {
+    if (!loading && !error && items.length === 0 && !spotCheck) {
       const timer = setTimeout(() => {
-      signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
+        signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
       }, 4000);
       return () => clearTimeout(timer);
     }
-  }, [items.length, loading, error]);
+  }, [items.length, loading, error, spotCheck]);
+
   const totalPrice = items.reduce(
     (sum, item) => sum + item.item.price * item.quantity,
     0
   );
 
   const handleConfirmAndPay = async () => {
-  try {
-    const res = await fetch(`/api/userItems?userId=${user.userId}&token=${user.token}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(`/api/userItems?userId=${user.userId}&token=${user.token}`, {
+        method: "DELETE",
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.error || "Något gick fel vid betalning.");
-      signOut({ callbackUrl: "/" });
-
-    } else {
-      alert("Payment completed!");
-      setItems([]);
-      signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
-
+      if (!res.ok) {
+        alert(data.error || "Något gick fel vid betalning.");
+        signOut({ callbackUrl: "/" });
+      } else {
+        alert("Payment completed!");
+        setItems([]);
+        signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
+      }
+    } catch (err) {
+      alert("Could not confirm payment.");
     }
-  } catch (err) {
-    alert("Could not confirm payment.");
-  }
-};
+  };
 
+  const handleVerification = (itemId: string, isValid: boolean) => {
+    setVerificationStatus(prev => ({
+      ...prev,
+      [itemId]: isValid
+    }));
+  };
 
-  if (loading)
+  const submitSpotCheck = async () => {
+    if (!spotCheck) return;
+    
+    setIsVerifying(true);
+    try {
+      // Check if all items have been verified
+      const allVerified = spotCheck.items.every((item: any) => verificationStatus[item.id] !== undefined);
+      if (!allVerified) {
+        alert("Please verify all items before submitting");
+        return;
+      }
+
+      // Calculate if the spot check passed (all items verified correctly)
+      const passed = spotCheck.items.every((item: any) => verificationStatus[item.id]);
+
+      const response = await fetch('/api/userItems', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.userId,
+          token: user.token,
+          passed,
+          verifiedItems: spotCheck.items.map((item: any) => ({
+            id: item.id,
+            verified: verificationStatus[item.id]
+          }))
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to submit verification");
+      }
+
+      alert(`Spot check ${passed ? 'passed' : 'failed'}. Your rank is now ${data.newRank}`);
+      setSpotCheck(null);
+    } catch (error) {
+      console.error("Verification error:", error);
+      alert("Failed to submit verification. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -82,8 +140,9 @@ export default function StopScan({ user }: { user: any }) {
         </div>
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center p-6 bg-red-50 rounded-lg max-w-md">
@@ -114,6 +173,68 @@ export default function StopScan({ user }: { user: any }) {
         </div>
       </div>
     );
+  }
+
+  if (spotCheck) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="container mx-auto px-4 py-8">
+          <header className="mb-8 text-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+              Spot Check Verification
+            </h1>
+            <p className="text-gray-600 mt-2">{spotCheck.message}</p>
+          </header>
+
+          <main className="max-w-3xl mx-auto">
+            <div className="space-y-4 mb-8">
+              {spotCheck.items.map((item: any) => (
+                <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium text-gray-800 text-lg">
+                        {item.name}
+                      </h3>
+                      <p className="text-gray-600">Quantity: {item.quantity}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 flex space-x-4">
+                    <button
+                      onClick={() => handleVerification(item.id, true)}
+                      className={`px-4 py-2 rounded-md ${verificationStatus[item.id] === true 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-green-100 text-green-800'}`}
+                    >
+                      Correct
+                    </button>
+                    <button
+                      onClick={() => handleVerification(item.id, false)}
+                      className={`px-4 py-2 rounded-md ${verificationStatus[item.id] === false 
+                        ? 'bg-red-500 text-white' 
+                        : 'bg-red-100 text-red-800'}`}
+                    >
+                      Incorrect
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center">
+              <button
+                onClick={submitSpotCheck}
+                disabled={isVerifying}
+                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300"
+              >
+                {isVerifying ? 'Submitting...' : 'Submit Verification'}
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
