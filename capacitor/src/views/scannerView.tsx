@@ -47,6 +47,55 @@ export default function ScannerView() {
     }
   };
 
+useEffect(() => {
+  const container = itemsContainerRef.current;
+  if (!container) return;
+
+  let startY = 0;
+  let isAtTop = false;
+  let isAtBottom = false;
+
+  const handleTouchStart = (e: TouchEvent) => {
+    startY = e.touches[0].clientY;
+    isAtTop = container.scrollTop === 0;
+    isAtBottom = container.scrollHeight <= container.clientHeight + container.scrollTop;
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isAtTop && !isAtBottom) return;
+
+    const y = e.touches[0].clientY;
+    const deltaY = y - startY;
+
+    if (isAtTop && deltaY > 0) {
+      e.preventDefault();
+      container.style.transform = `translateY(${deltaY * 0.3}px)`;
+    } else if (isAtBottom && deltaY < 0) {
+      e.preventDefault();
+      container.style.transform = `translateY(${deltaY * 0.3}px)`;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    container.style.transition = 'transform 0.3s ease-out';
+    container.style.transform = 'translateY(0)';
+    
+    setTimeout(() => {
+      container.style.transition = '';
+    }, 300);
+  };
+
+  container.addEventListener('touchstart', handleTouchStart);
+  container.addEventListener('touchmove', handleTouchMove, { passive: false });
+  container.addEventListener('touchend', handleTouchEnd);
+
+  return () => {
+    container.removeEventListener('touchstart', handleTouchStart);
+    container.removeEventListener('touchmove', handleTouchMove);
+    container.removeEventListener('touchend', handleTouchEnd);
+  };
+}, []);
+
   useEffect(() => {
     if (state?.itemCacheEntries) {
       itemCache.current = new Map(state.itemCacheEntries);
