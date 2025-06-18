@@ -136,36 +136,44 @@ export async function GET(req: NextRequest) {
   const responseData: any = { items: scannedItems };
 
   if (!user.spotCheck) {
+    const spotCheckProbability = Math.max(0.10, 1.00 - (user.rank - 1) * 0.10);
+    const random = Math.random();
+    console.log("Spot check probability:", spotCheckProbability);
+    console.log("Random value for spot check:", random);
 
-    const spotCheckProbability = Math.max(0.02, 0.20 - (user.rank * 0.02));
-    
-    if (true) {
+    if (random < spotCheckProbability) {
       await prisma.user.update({
         where: { id: user.id },
         data: { spotCheck: true },
       });
-      
-      const itemsToVerify = [...scannedItems]
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3)
-        .map(item => ({
-          id: item.id,
-          barcode: item.item.barcode,
-          name: item.item.name,
-          quantity: item.quantity
-        }));
-      
+
+      const itemsToVerify = getRandomSpotCheckItems(scannedItems);
       responseData.spotCheck = true;
       responseData.spotCheckItems = itemsToVerify;
       responseData.message = "Please verify these random items from your list.";
     }
   } else {
+    const itemsToVerify = getRandomSpotCheckItems(scannedItems);
     responseData.spotCheck = true;
+    responseData.spotCheckItems = itemsToVerify;
     responseData.message = "You still have pending spot check items to verify.";
   }
 
   return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
 }
+
+function getRandomSpotCheckItems(items: any[]) {
+  return [...items]
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 3)
+    .map(item => ({
+      id: item.id,
+      barcode: item.item.barcode,
+      name: item.item.name,
+      quantity: item.quantity,
+    }));
+}
+
 
 export async function DELETE(req: NextRequest) {
   try {
