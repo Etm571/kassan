@@ -20,38 +20,50 @@ enum Role {
   ADMIN
 }
 
-
 model User {
-  id          Int           @id @default(autoincrement())
-  userId      String        @unique
-  email       String
-  name        String
-  role        Role          @default(CUSTOMER)
-  token       String?
-  tokenExpiry DateTime?
-  active      Boolean      @default(false)
-  scannedItems ScannedItem[]
-  createdAt DateTime @default(now())
-  suspended Boolean @default(false)
+  id             Int             @id @default(autoincrement())
+  userId         String          @unique
+  email          String
+  name           String
+  role           Role            @default(CUSTOMER)
+  token          String?
+  tokenExpiry    DateTime?
+  active         Boolean         @default(false)
+  rank           Int             @default(1)
+  spotCheck      Boolean         @default(false)
+  scannedItems   ScannedItem[]
+  spotCheckItems SpotCheckItem[]
+  createdAt      DateTime        @default(now())
+  suspended      Boolean         @default(false)
 }
 
 model Item {
-  id          Int           @id @default(autoincrement())
-  name        String
-  barcode     String        @unique
-  price       Decimal       @db.Decimal(10, 2)
-  stock       Int           @default(0)
-  imagePath   String?
+  id        Int     @id @default(autoincrement())
+  name      String
+  barcode   String  @unique
+  price     Decimal @db.Decimal(10, 2)
+  stock     Int     @default(0)
+  imagePath String?
 
-  scannedItems ScannedItem[]
+  scannedItems   ScannedItem[]
+  spotCheckItems SpotCheckItem[]
 }
 
 model ScannedItem {
-  id        Int       @id @default(autoincrement())
-  user      User      @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
   userId    Int
-  item      Item      @relation(fields: [itemId], references: [id])
+  item      Item     @relation(fields: [itemId], references: [id])
   itemId    Int
-  quantity  Int       @default(1)
-  createdAt DateTime  @default(now())
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+}
+
+model SpotCheckItem {
+  id       Int  @id @default(autoincrement())
+  userId   Int
+  itemId   Int
+  quantity Int
+  user     User @relation(fields: [userId], references: [id])
+  item     Item @relation(fields: [itemId], references: [id])
 }
