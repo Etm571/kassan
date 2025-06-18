@@ -47,54 +47,57 @@ export default function ScannerView() {
     }
   };
 
-useEffect(() => {
-  const container = itemsContainerRef.current;
-  if (!container) return;
+  useEffect(() => {
+    const container = itemsContainerRef.current;
+    if (!container) return;
 
-  let startY = 0;
-  let isAtTop = false;
-  let isAtBottom = false;
+    let startY = 0;
+    let isAtTop = false;
+    let isAtBottom = false;
 
-  const handleTouchStart = (e: TouchEvent) => {
-    startY = e.touches[0].clientY;
-    isAtTop = container.scrollTop === 0;
-    isAtBottom = container.scrollHeight <= container.clientHeight + container.scrollTop;
-  };
+    const handleTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+      isAtTop = container.scrollTop === 0;
+      isAtBottom =
+        container.scrollHeight <= container.clientHeight + container.scrollTop;
+    };
 
-  const handleTouchMove = (e: TouchEvent) => {
-    if (!isAtTop && !isAtBottom) return;
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isAtTop && !isAtBottom) return;
 
-    const y = e.touches[0].clientY;
-    const deltaY = y - startY;
+      const y = e.touches[0].clientY;
+      const deltaY = y - startY;
 
-    if (isAtTop && deltaY > 0) {
-      e.preventDefault();
-      container.style.transform = `translateY(${deltaY * 0.3}px)`;
-    } else if (isAtBottom && deltaY < 0) {
-      e.preventDefault();
-      container.style.transform = `translateY(${deltaY * 0.3}px)`;
-    }
-  };
+      if (isAtTop && deltaY > 0) {
+        e.preventDefault();
+        container.style.transform = `translateY(${deltaY * 0.3}px)`;
+      } else if (isAtBottom && deltaY < 0) {
+        e.preventDefault();
+        container.style.transform = `translateY(${deltaY * 0.3}px)`;
+      }
+    };
 
-  const handleTouchEnd = () => {
-    container.style.transition = 'transform 0.3s ease-out';
-    container.style.transform = 'translateY(0)';
-    
-    setTimeout(() => {
-      container.style.transition = '';
-    }, 300);
-  };
+    const handleTouchEnd = () => {
+      container.style.transition = "transform 0.3s ease-out";
+      container.style.transform = "translateY(0)";
 
-  container.addEventListener('touchstart', handleTouchStart);
-  container.addEventListener('touchmove', handleTouchMove, { passive: false });
-  container.addEventListener('touchend', handleTouchEnd);
+      setTimeout(() => {
+        container.style.transition = "";
+      }, 300);
+    };
 
-  return () => {
-    container.removeEventListener('touchstart', handleTouchStart);
-    container.removeEventListener('touchmove', handleTouchMove);
-    container.removeEventListener('touchend', handleTouchEnd);
-  };
-}, []);
+    container.addEventListener("touchstart", handleTouchStart);
+    container.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
+    container.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchmove", handleTouchMove);
+      container.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, []);
 
   useEffect(() => {
     if (state?.itemCacheEntries) {
@@ -234,17 +237,15 @@ useEffect(() => {
   return (
     <div className="container">
       {showRemoveOverlay && (
-        <div className="overlay">
-          <div className="overlay-content">
-            <p>Skanna varan du vill ta bort</p>
-            <div className="overlay-buttons">
-              <button
-                className="cancel-btn"
-                onClick={() => setShowRemoveOverlay(false)}
-              >
-                Avbryt
-              </button>
-            </div>
+        <div className="remove-overlay-slide show">
+          <div className="remove-overlay-content">
+            <h2>Skanna för att ta bort</h2>
+            <button
+              className="cancel-btn"
+              onClick={() => setShowRemoveOverlay(false)}
+            >
+              Avbryt
+            </button>
           </div>
         </div>
       )}
@@ -289,7 +290,10 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="time-display-bubble" style={{ display: "flex", alignItems: "center" }}>
+      <div
+        className="time-display-bubble"
+        style={{ display: "flex", alignItems: "center" }}
+      >
         <img
           src="/clock.png"
           alt="clock"
