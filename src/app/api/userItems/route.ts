@@ -133,47 +133,61 @@ export async function GET(req: NextRequest) {
     include: { item: true },
   });
 
-  const responseData: any = { items: scannedItems };
+  let responseData: any = { items: scannedItems };
 
-  if (!user.spotCheck) {
-    const spotCheckProbability = Math.max(0.10, 1.00 - (user.rank - 1) * 0.10);
+  if (user.spotCheck) {
+    const spotCheckItems = await prisma.spotCheckItem.findMany({
+      where: { userId: user.id },
+      include: { item: true },
+    });
+    responseData.spotCheck = true;
+    responseData.spotCheckItems = spotCheckItems.map(i => ({
+      id: i.id,
+      barcode: i.item.barcode,
+      name: i.item.name,
+      quantity: i.quantity,
+    }));
+    responseData.message = "You have pending spot check items to verify.";
+  } else {
+    const rank = Math.max(1, Math.min(user.rank, 10));
+    const spotCheckProbability = Math.max(0.1, 1.0 - (rank - 1) * 0.1);
     const random = Math.random();
-    console.log("Spot check probability:", spotCheckProbability);
-    console.log("Random value for spot check:", random);
+
+    console.log(`User rank: ${rank}, Spot check probability: ${spotCheckProbability}, Random value: ${random}`);
 
     if (random < spotCheckProbability) {
+      const itemsToVerify = getRandomSpotCheckItems(scannedItems, 3);
+
       await prisma.user.update({
         where: { id: user.id },
         data: { spotCheck: true },
       });
+      await prisma.spotCheckItem.deleteMany({ where: { userId: user.id } });
+      await Promise.all(
+        itemsToVerify.map(item =>
+          prisma.spotCheckItem.create({
+            data: {
+              userId: user.id,
+              itemId: item.item.id,
+              quantity: item.quantity,
+            },
+          })
+        )
+      );
 
-      const itemsToVerify = getRandomSpotCheckItems(scannedItems);
       responseData.spotCheck = true;
-      responseData.spotCheckItems = itemsToVerify;
+      responseData.spotCheckItems = itemsToVerify.map(item => ({
+        id: item.id,
+        barcode: item.item.barcode,
+        name: item.item.name,
+        quantity: item.quantity,
+      }));
       responseData.message = "Please verify these random items from your list.";
     }
-  } else {
-    const itemsToVerify = getRandomSpotCheckItems(scannedItems);
-    responseData.spotCheck = true;
-    responseData.spotCheckItems = itemsToVerify;
-    responseData.message = "You still have pending spot check items to verify.";
   }
 
   return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
 }
-
-function getRandomSpotCheckItems(items: any[]) {
-  return [...items]
-    .sort(() => 0.5 - Math.random())
-    .slice(0, 3)
-    .map(item => ({
-      id: item.id,
-      barcode: item.item.barcode,
-      name: item.item.name,
-      quantity: item.quantity,
-    }));
-}
-
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -252,9 +266,9 @@ export async function DELETE(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { userId, token, passed, verifiedItems } = await req.json();
+    const { userId, token, passed } = await req.json();
 
-    if (!userId || !token || typeof passed !== 'boolean' || !Array.isArray(verifiedItems)) {
+    if (!userId || !token || typeof passed !== "boolean") {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400, headers: corsHeaders }
@@ -277,25 +291,27 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    let rankChange = 0;
+    let newRank = user.rank;
     if (passed) {
-      rankChange = user.rank < 10 ? 1 : 0;
+      newRank = Math.min(user.rank + 1, 10);
     } else {
-      rankChange = user.rank > 1 ? -1 : 0;
+      newRank = Math.max(user.rank - 1, 1);
     }
 
-    const updatedUser = await prisma.user.update({
+    await prisma.user.update({
       where: { id: user.id },
-      data: { 
-        rank: user.rank + rankChange,
-        spotCheck: false 
+      data: {
+        rank: newRank,
+        spotCheck: false,
       },
     });
 
+    await prisma.spotCheckItem.deleteMany({ where: { userId: user.id } });
+
     return NextResponse.json(
-      { 
-        message: `Spot check ${passed ? 'passed' : 'failed'}. Rank ${rankChange >= 0 ? 'increased' : 'decreased'}.`,
-        newRank: updatedUser.rank 
+      {
+        message: `Spot check ${passed ? "passed" : "failed"}. Rank is now ${newRank}.`,
+        newRank,
       },
       { status: 200, headers: corsHeaders }
     );
@@ -306,4 +322,10 @@ export async function PUT(req: NextRequest) {
       { status: 500, headers: corsHeaders }
     );
   }
+}
+
+function getRandomSpotCheckItems(items: any[], n = 3) {
+  return [...items]
+    .sort(() => 0.5 - Math.random())
+    .slice(0, n);
 }
