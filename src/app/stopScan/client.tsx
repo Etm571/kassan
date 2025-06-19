@@ -23,7 +23,7 @@ export default function StopScan({ user }: { user: any }) {
     const fetchItems = async () => {
       try {
         const res = await fetch(
-          `/api/userItems?userId=${user.userId}&token=${user.token}`
+          `/api/userItems?userId=${user.userId}`
         );
         const data = await res.json();
 

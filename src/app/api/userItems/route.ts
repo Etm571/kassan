@@ -103,9 +103,8 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
-  const token = searchParams.get("token");
 
-  if (!userId || !token) {
+  if (!userId) {
     return NextResponse.json(
       { error: "Missing userId or token" },
       { status: 400, headers: corsHeaders }
@@ -114,7 +113,7 @@ export async function GET(req: NextRequest) {
 
   const user = await prisma.user.findUnique({ where: { userId } });
 
-  if (!user || user.token !== token) {
+  if (!user) {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401, headers: corsHeaders }
