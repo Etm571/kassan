@@ -13,6 +13,7 @@ export default function ScannerView() {
   const [showUnknownItemPopup, setShowUnknownItemPopup] = useState(false);
   const itemsContainerRef = useRef<HTMLDivElement>(null);
   const lastScannedRef = useRef<HTMLDivElement>(null);
+  const [barcodeInt, setBarcodeInt] = useState(1000);
   const itemCache = useRef<Map<string, { name: string; price?: number }>>(
     new Map()
   );
@@ -20,6 +21,9 @@ export default function ScannerView() {
   const clickCountRef = useRef(0);
   const [showLog, setShowLog] = useState(false);
   const [currentTime, setCurrentTime] = useState(() => new Date());
+  const [lastScannedBarcode, setLastScannedBarcode] = useState<string | null>(
+    null
+  );
 
   const location = useLocation();
   const state = location.state as {
@@ -52,38 +56,44 @@ export default function ScannerView() {
     if (!container) return;
 
     let startY = 0;
-    let isAtTop = false;
-    let isAtBottom = false;
+    let dragging = false;
 
     const handleTouchStart = (e: TouchEvent) => {
       startY = e.touches[0].clientY;
-      isAtTop = container.scrollTop === 0;
-      isAtBottom =
-        container.scrollHeight <= container.clientHeight + container.scrollTop;
+      dragging = false;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isAtTop && !isAtBottom) return;
-
       const y = e.touches[0].clientY;
       const deltaY = y - startY;
 
-      if (isAtTop && deltaY > 0) {
-        e.preventDefault();
-        container.style.transform = `translateY(${deltaY * 0.3}px)`;
-      } else if (isAtBottom && deltaY < 0) {
-        e.preventDefault();
-        container.style.transform = `translateY(${deltaY * 0.3}px)`;
+      const atTop = container.scrollTop === 0;
+      const atBottom =
+        container.scrollTop + container.clientHeight >= container.scrollHeight;
+
+      const threshold = 10;
+      const pullStrength = 0.3;
+
+      if ((atTop && deltaY > threshold) || (atBottom && deltaY < -threshold)) {
+        if (e.cancelable) e.preventDefault();
+        dragging = true;
+        container.style.transform = `translateY(${deltaY * pullStrength}px)`;
       }
     };
 
     const handleTouchEnd = () => {
-      container.style.transition = "transform 0.3s ease-out";
-      container.style.transform = "translateY(0)";
+      if (!dragging) return;
 
-      setTimeout(() => {
+      container.style.transition = "transform 0.3s ease-out";
+      container.style.transform = "translateY(0px)";
+
+      const reset = () => {
         container.style.transition = "";
-      }, 300);
+        container.removeEventListener("transitionend", reset);
+      };
+
+      container.addEventListener("transitionend", reset);
+      dragging = false;
     };
 
     container.addEventListener("touchstart", handleTouchStart);
@@ -98,6 +108,14 @@ export default function ScannerView() {
       container.removeEventListener("touchend", handleTouchEnd);
     };
   }, []);
+
+  useEffect(() => {
+    if (!lastScannedBarcode) return;
+    const timeout = setTimeout(() => {
+      setLastScannedBarcode(null);
+    }, 600); // match animation duration
+    return () => clearTimeout(timeout);
+  }, [lastScannedBarcode]);
 
   useEffect(() => {
     if (state?.itemCacheEntries) {
@@ -126,16 +144,27 @@ export default function ScannerView() {
   const addItem = (barcode: string, name: string, price?: number) => {
     setItems((prev) => {
       const existingIndex = prev.findIndex((item) => item.barcode === barcode);
+
+      const isAlreadyLastItem =
+        existingIndex >= 0 && existingIndex === prev.length - 1;
+
       if (existingIndex >= 0) {
         const updatedItem = {
           ...prev[existingIndex],
           count: prev[existingIndex].count + 1,
         };
-        return [
+        const newItems = [
           ...prev.filter((item) => item.barcode !== barcode),
           updatedItem,
         ];
+
+        if (!isAlreadyLastItem) {
+          setLastScannedBarcode(barcode);
+        }
+        return newItems;
       }
+
+      setLastScannedBarcode(barcode);
       return [
         ...prev,
         {
@@ -165,12 +194,16 @@ export default function ScannerView() {
   });
 
   const simulateScan = () => {
-    let x = 0;
-    while (x < 10000) {
-      const barcode = "1000";
-      scanHandler({ barcode });
-      x++;
+    let nextBarcode = barcodeInt;
+
+    if (nextBarcode >= 1010) {
+      nextBarcode = 1000;
     }
+
+    const barcode = nextBarcode.toString();
+    scanHandler({ barcode });
+    setBarcodeInt(nextBarcode + 1);
+    console.log("Simulated scan for barcode:", barcode);
   };
 
   const simulateScan2 = () => {
@@ -272,11 +305,26 @@ export default function ScannerView() {
             {items.map((item, index) => (
               <div
                 key={item.barcode}
-                className="item-row"
+                className={
+                  "item-row" +
+                  (item.barcode === lastScannedBarcode &&
+                  index !== items.length - 1
+                    ? " new-item-row-animate"
+                    : "")
+                }
                 ref={index === items.length - 1 ? lastScannedRef : null}
               >
                 <div className="item-left">
-                  <div className="item-name">{item.name}</div>
+                  <div
+                    className={
+                      "item-name" +
+                      (item.barcode === lastScannedBarcode
+                        ? " new-item-highlight"
+                        : "")
+                    }
+                  >
+                    {item.name}
+                  </div>
                   <div className="item-details">
                     {item.count} × {formatPrice(Number(item.price))} kr
                   </div>

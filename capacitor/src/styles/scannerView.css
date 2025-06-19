@@ -23,7 +23,7 @@ html, body {
   flex: 1;
   overflow: hidden;
   padding: 0 10px;
-  margin-bottom: 140px;
+  margin-bottom: 130px;
 }
 
 .items-scroll {
@@ -52,6 +52,8 @@ html, body {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
 }
 
 
@@ -67,11 +69,7 @@ html, body {
   color: #1a1a1a;
   transition: color 0.5s ease;
 }
-.new-item-highlight .item-name {
-  color: #22c55e;
-  font-weight: 700;
-  transition: color 3s ease;
-}
+
 
 
 .item-details {
@@ -251,6 +249,9 @@ html, body {
   scroll-behavior: smooth;
   padding-bottom: 30px;
   overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+
 }
 
 .unknown-item-popup {
@@ -326,10 +327,10 @@ html, body {
 .time-display-bubble {
   position: fixed;
   left: 50%;
-  top: calc(100% - 141px);
+  top: calc(100% - 133px);
   transform: translate(-50%, -50%);
   background: rgba(255,255,255,0.95);
-  color: #222;
+  color: #000000;
   font-size: 0.9em;
   padding: 0.4em 1.2em;
   border-radius: 2em;
