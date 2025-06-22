@@ -16,15 +16,12 @@ export default function StopScan({ user }: { user: any }) {
   }>({});
   const [isVerifying, setIsVerifying] = useState(false);
   const [confirmedScan, setConfirmedScan] = useState<boolean | null>(null);
-  const [showAlert, setShowAlert] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const res = await fetch(
-          `/api/userItems?userId=${user.userId}`
-        );
+        const res = await fetch(`/api/userItems?userId=${user.userId}`);
         const data = await res.json();
 
         if (!res.ok) {
@@ -65,13 +62,25 @@ export default function StopScan({ user }: { user: any }) {
   };
 
   useEffect(() => {
-    if (!loading && !error && items.length === 0 && !spotCheck) {
+   console.log(
+      "loading:", loading,
+      "error:", error,
+      "items.length:", items.length,
+      "spotCheck:", spotCheck,
+      "confirmedScan:", confirmedScan
+    );    
+    if (
+      !loading &&
+      !error &&
+      items.length === 0 &&
+      !confirmedScan
+    ) {
       const timer = setTimeout(() => {
         signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
       }, 4000);
       return () => clearTimeout(timer);
     }
-  }, [items.length, loading, error, spotCheck]);
+  }, [items.length, loading, error, spotCheck, confirmedScan]);
 
   const totalPrice = items.reduce(
     (sum, item) => sum + item.item.price * item.quantity,

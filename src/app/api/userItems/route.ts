@@ -154,7 +154,9 @@ export async function GET(req: NextRequest) {
 
     console.log(`User rank: ${rank}, Spot check probability: ${spotCheckProbability}, Random value: ${random}`);
 
-    if (random < spotCheckProbability) {
+    if (true) {
+    //if (random < spotCheckProbability) {
+
       const itemsToVerify = getRandomSpotCheckItems(scannedItems, 3);
 
       await prisma.user.update({
