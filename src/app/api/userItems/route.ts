@@ -282,9 +282,9 @@ export async function DELETE(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { userId, token, passed } = await req.json();
+    const { userId, passed } = await req.json();
 
-    if (!userId || !token || typeof passed !== "boolean") {
+    if (!userId || typeof passed !== "boolean") {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400, headers: corsHeaders }
@@ -293,7 +293,7 @@ export async function PUT(req: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { userId } });
 
-    if (!user || user.token !== token) {
+    if (!user) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401, headers: corsHeaders }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 interface Item {
   id: string;
@@ -23,6 +23,7 @@ export default function StaffCheckoutClient() {
   const [error, setError] = useState<string | null>(null);
 
   const params = useParams();
+  const router = useRouter();
   const userId =
     typeof params.userId === "string"
       ? params.userId
@@ -30,7 +31,6 @@ export default function StaffCheckoutClient() {
       ? params.userId[0]
       : "";
 
-  // Fetch scanned items on mount or when userId changes
   useEffect(() => {
     async function getScannedItems() {
       setIsLoading(true);
@@ -60,17 +60,17 @@ export default function StaffCheckoutClient() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch(`/api/scanned-items/approve`, {
-        method: "POST",
+      const response = await fetch(`/api/userItems`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId: userId, passed: true }),
       });
       if (!response.ok) throw new Error("Failed to confirm checkout");
       alert("Checkout confirmed successfully!");
-      // Optionally refresh the scanned items after confirming checkout
       setScannedItems([]);
+      router.push("/stopScan");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
