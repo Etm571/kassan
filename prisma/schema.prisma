@@ -22,7 +22,7 @@ enum Role {
 
 model User {
   id             Int             @id @default(autoincrement())
-  userId         String          @unique
+  userId         BigInt          @unique
   email          String
   name           String
   role           Role            @default(CUSTOMER)

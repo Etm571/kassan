@@ -54,6 +54,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (items.length === 0) {
+
+      await prisma.user.update({
+        where: { userId: userId },
+        data: { token: null, tokenExpiry: null, active: false }
+      });
+
+      return NextResponse.json(
+        { error: "Items array empty" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     for (const scanned of items) {
       if (!scanned.barcode) {
         return NextResponse.json(
@@ -111,7 +124,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const user = await prisma.user.findUnique({ where: { userId } });
+const user = await prisma.user.findUnique({
+  where: { userId: BigInt(userId) },
+});
 
   if (!user) {
     return NextResponse.json(
@@ -203,7 +218,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({ where: { userId } });
+    const user = await prisma.user.findUnique({ where: {userId: BigInt(userId) } });
 
     if (!user || user.token !== token) {
       return NextResponse.json(
@@ -248,7 +263,7 @@ export async function DELETE(req: NextRequest) {
     });
 
     await prisma.user.update({
-      where: { userId: userId },
+      where: { userId: BigInt(userId) },
       data: { tokenExpiry: null, token: null, active: false },
     });
 
