@@ -296,9 +296,9 @@ export async function DELETE(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { userId, passed } = await req.json();
+    const { userId, staffUserId, passed } = await req.json();
 
-    if (!userId || typeof passed !== "boolean") {
+    if (!staffUserId || !userId || typeof passed !== "boolean") {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400, headers: corsHeaders }
@@ -306,11 +306,20 @@ export async function PUT(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({ where: { userId } });
+    const staffUser = await prisma.user.findUnique({ where: { userId: staffUserId } });
+
 
     if (!user) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401, headers: corsHeaders }
+      );
+    }
+    if (staffUser?.role !== "STAFF" && staffUser?.role !== "ADMIN") {
+
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 403, headers: corsHeaders }
       );
     }
 

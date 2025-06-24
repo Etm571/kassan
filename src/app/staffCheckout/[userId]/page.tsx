@@ -132,7 +132,7 @@ export default function StaffCheckoutPage() {
           </div>
         </div>
       }>
-        <StaffCheckoutClient/>
+        <StaffCheckoutClient staffUserId={input}/>
       </Suspense>
     </div>
   );
