@@ -108,8 +108,6 @@ export async function POST(req: NextRequest) {
       const spotCheckProbability = Math.max(0.1, 1.0 - (rank - 1) * 0.1);
       const random = Math.random();
 
-      console.log(`User rank: ${rank}, Spot check probability: ${spotCheckProbability}, Random value: ${random}`);
-
       if (random < spotCheckProbability) {
         const scannedItems = await prisma.scannedItem.findMany({
           where: { userId: user.id },
