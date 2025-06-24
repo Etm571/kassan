@@ -12,7 +12,7 @@ export default async function ScanSuccessPage() {
   }
 
   const user = await prisma.user.findUnique({
-    where: { userId: session.user.userId as string },
+    where: { userId: BigInt(session.user.userId) },
   });
 
   if (!user) {
@@ -43,7 +43,7 @@ export default async function ScanSuccessPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        assignError = error.fel || "Misslyckades med att tilldela skanner.";
+        assignError = error.error || "Technical issues.";
         return
       }
     } catch (err) {
@@ -53,7 +53,7 @@ export default async function ScanSuccessPage() {
 
 
     await prisma.user.update({
-      where: { userId: user.userId },
+      where: { userId: BigInt(user.userId) },
       data: {
         active: true,
       },

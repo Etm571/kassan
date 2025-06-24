@@ -53,36 +53,36 @@ export const authOptions: NextAuthOptions = {
         userId: { label: "User ID", type: "text" },
         callbackUrl: { label: "Callback URL", type: "text" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         try {
           if (!credentials || !credentials.userId) {
             return null;
           }
 
           const user = await prisma.user.findUnique({
-            where: { userId: credentials.userId as string },
+            where: { userId: Number(credentials.userId) },
           });
 
           if (!user) return null;
 
           if (user.suspended) return null;
 
+          let generatedToken = user.token;
 
-        let generatedToken = user.token;
-
-         if (!user.token || !user.tokenExpiry || user.tokenExpiry < new Date()) {
-          generatedToken = crypto.randomBytes(16).toString("hex");
-          await prisma.user.update({
-            where: { userId: user.userId },
-            data: {
-              token: generatedToken,
-              tokenExpiry: new Date(Date.now() + 4 * 60 * 60 * 1000),
-            },
-          });
-         }
+          if (!user.token || !user.tokenExpiry || user.tokenExpiry < new Date()) {
+            generatedToken = crypto.randomBytes(16).toString("hex");
+            await prisma.user.update({
+              where: { userId: user.userId },
+              data: {
+                token: generatedToken,
+                tokenExpiry: new Date(Date.now() + 4 * 60 * 60 * 1000),
+              },
+            });
+          }
           return {
             ...user,
             id: user.id.toString(),
+            userId: user.userId.toString(),
             token: generatedToken,
             role: user.role
           };

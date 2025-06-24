@@ -54,6 +54,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (items.length === 0) {
+
+      await prisma.user.update({
+        where: { userId: userId },
+        data: { token: null, tokenExpiry: null, active: false }
+      });
+
+      return NextResponse.json(
+        { error: "Items array empty" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     for (const scanned of items) {
       if (!scanned.barcode) {
         return NextResponse.json(
@@ -80,15 +93,41 @@ export async function POST(req: NextRequest) {
           quantity: scanned.count || 1,
         },
       });
-
       await prisma.user.update({
         where: { userId: userId },
         data: { token: null, tokenExpiry: null },
       });
     }
 
+    let spotCheckTriggered = false;
+    let spotCheckItems: any[] = [];
+    let message: string | undefined = undefined;
+
+    if (!user.spotCheck) {
+      const rank = Math.max(1, Math.min(user.rank, 10));
+      const spotCheckProbability = Math.max(0.1, 1.0 - (rank - 1) * 0.1);
+      const random = Math.random();
+
+      if (random < spotCheckProbability) {
+        const scannedItems = await prisma.scannedItem.findMany({
+          where: { userId: user.id },
+          include: { item: true },
+        });
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { spotCheck: true },
+        });
+      }
+    }
+
     return NextResponse.json(
-      { success: true, message: "Items saved successfully" },
+      {
+        success: true,
+        message: spotCheckTriggered ? message : "Items saved successfully",
+        spotCheck: spotCheckTriggered,
+        spotCheckItems: spotCheckTriggered ? spotCheckItems : undefined,
+      },
       { status: 200, headers: corsHeaders }
     );
   } catch (error) {
@@ -103,28 +142,22 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
-  const token = searchParams.get("token");
 
-  if (!userId || !token) {
+  if (!userId) {
     return NextResponse.json(
       { error: "Missing userId or token" },
       { status: 400, headers: corsHeaders }
     );
   }
 
-  const user = await prisma.user.findUnique({ where: { userId } });
+  const user = await prisma.user.findUnique({
+    where: { userId: BigInt(userId) },
+  });
 
-  if (!user || user.token !== token) {
+  if (!user) {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401, headers: corsHeaders }
-    );
-  }
-
-  if (user.tokenExpiry && user.tokenExpiry < new Date()) {
-    return NextResponse.json(
-      { error: "Token expired" },
-      { status: 403, headers: corsHeaders }
     );
   }
 
@@ -133,58 +166,11 @@ export async function GET(req: NextRequest) {
     include: { item: true },
   });
 
-  let responseData: any = { items: scannedItems };
-
-  if (user.spotCheck) {
-    const spotCheckItems = await prisma.spotCheckItem.findMany({
-      where: { userId: user.id },
-      include: { item: true },
-    });
-    responseData.spotCheck = true;
-    responseData.spotCheckItems = spotCheckItems.map(i => ({
-      id: i.id,
-      barcode: i.item.barcode,
-      name: i.item.name,
-      quantity: i.quantity,
-    }));
-    responseData.message = "You have pending spot check items to verify.";
-  } else {
-    const rank = Math.max(1, Math.min(user.rank, 10));
-    const spotCheckProbability = Math.max(0.1, 1.0 - (rank - 1) * 0.1);
-    const random = Math.random();
-
-    console.log(`User rank: ${rank}, Spot check probability: ${spotCheckProbability}, Random value: ${random}`);
-
-    if (random < spotCheckProbability) {
-      const itemsToVerify = getRandomSpotCheckItems(scannedItems, 3);
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { spotCheck: true },
-      });
-      await prisma.spotCheckItem.deleteMany({ where: { userId: user.id } });
-      await Promise.all(
-        itemsToVerify.map(item =>
-          prisma.spotCheckItem.create({
-            data: {
-              userId: user.id,
-              itemId: item.item.id,
-              quantity: item.quantity,
-            },
-          })
-        )
-      );
-
-      responseData.spotCheck = true;
-      responseData.spotCheckItems = itemsToVerify.map(item => ({
-        id: item.id,
-        barcode: item.item.barcode,
-        name: item.item.name,
-        quantity: item.quantity,
-      }));
-      responseData.message = "Please verify these random items from your list.";
-    }
-  }
+  let responseData: any = { 
+    items: scannedItems,
+    completedSpotCheck: user.completedSpotCheck,
+    spotCheck: user.spotCheck
+  };
 
   return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
 }
@@ -202,7 +188,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({ where: { userId } });
+    const user = await prisma.user.findUnique({ where: {userId: BigInt(userId) } });
 
     if (!user || user.token !== token) {
       return NextResponse.json(
@@ -247,8 +233,8 @@ export async function DELETE(req: NextRequest) {
     });
 
     await prisma.user.update({
-      where: { userId: userId },
-      data: { tokenExpiry: null, token: null, active: false },
+      where: { userId: BigInt(userId) },
+      data: { tokenExpiry: null, token: null, active: false, completedSpotCheck: false },
     });
 
     return NextResponse.json(
@@ -266,9 +252,9 @@ export async function DELETE(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { userId, token, passed } = await req.json();
+    const { userId, staffUserId, passed } = await req.json();
 
-    if (!userId || !token || typeof passed !== "boolean") {
+    if (!staffUserId || !userId || typeof passed !== "boolean") {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400, headers: corsHeaders }
@@ -276,11 +262,20 @@ export async function PUT(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({ where: { userId } });
+    const staffUser = await prisma.user.findUnique({ where: { userId: staffUserId } });
 
-    if (!user || user.token !== token) {
+
+    if (!user) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401, headers: corsHeaders }
+      );
+    }
+    if (staffUser?.role !== "STAFF" && staffUser?.role !== "ADMIN") {
+
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 403, headers: corsHeaders }
       );
     }
 
@@ -303,10 +298,10 @@ export async function PUT(req: NextRequest) {
       data: {
         rank: newRank,
         spotCheck: false,
+        completedSpotCheck: true,
       },
     });
 
-    await prisma.spotCheckItem.deleteMany({ where: { userId: user.id } });
 
     return NextResponse.json(
       {

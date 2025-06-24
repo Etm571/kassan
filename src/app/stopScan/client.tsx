@@ -10,32 +10,29 @@ export default function StopScan({ user }: { user: any }) {
   const [items, setItems] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [spotCheck, setSpotCheck] = useState<any>(null);
-  const [verificationStatus, setVerificationStatus] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const [isVerifying, setIsVerifying] = useState(false);
   const [confirmedScan, setConfirmedScan] = useState<boolean | null>(null);
-  const [showAlert, setShowAlert] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSpotCheckScreen, setShowSpotCheckScreen] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const [completedSpotCheck, setCompletedSpotCheck] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const res = await fetch(
-          `/api/userItems?userId=${user.userId}&token=${user.token}`
-        );
+        const res = await fetch(`/api/userItems?userId=${user.userId}`);
         const data = await res.json();
+        console.log("Fetched items:", data);
 
         if (!res.ok) {
           setError(data.error || "Ett fel inträffade");
         } else {
           setItems(data.items);
-          if (data.spotCheck) {
-            setSpotCheck({
-              items: data.spotCheckItems || [],
-              message: data.message || "Please verify these items",
-            });
+          setCompletedSpotCheck(!!data.completedSpotCheck);
+          if (confirmedScan) {
+            if (data.spotCheck) {
+              setShowSpotCheckScreen(true);
+            }
           }
         }
       } catch {
@@ -46,13 +43,19 @@ export default function StopScan({ user }: { user: any }) {
     };
 
     fetchItems();
-  }, [user.userId, user.token]);
+  }, [user.userId, user.token, router, confirmedScan]);
 
   useEffect(() => {
-    if (!loading && !error && items.length > 0 && confirmedScan === null) {
+    if (
+      !loading &&
+      !error &&
+      items.length > 0 &&
+      confirmedScan === null &&
+      !completedSpotCheck
+    ) {
       setShowConfirmModal(true);
     }
-  }, [loading, error, items, confirmedScan]);
+  }, [loading, error, items, confirmedScan, completedSpotCheck]);
 
   const handleConfirm = (confirmed: any) => {
     setShowConfirmModal(false);
@@ -65,18 +68,40 @@ export default function StopScan({ user }: { user: any }) {
   };
 
   useEffect(() => {
-    if (!loading && !error && items.length === 0 && !spotCheck) {
+    if (!loading && !error && items.length === 0 && !confirmedScan) {
       const timer = setTimeout(() => {
         signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
-      }, 4000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [items.length, loading, error, spotCheck]);
+  }, [items.length, loading, error, confirmedScan]);
 
   const totalPrice = items.reduce(
     (sum, item) => sum + item.item.price * item.quantity,
     0
   );
+
+  const handleScreenTap = (e: React.MouseEvent<HTMLDivElement>) => {
+    const bounds = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - bounds.left;
+    const y = e.clientY - bounds.top;
+
+    const topRightZone = x > bounds.width - 100 && y < 100;
+
+    const now = Date.now();
+
+    if (topRightZone && now - lastTapTime < 600) {
+      setTapCount((prev) => prev + 1);
+    } else {
+      setTapCount(1);
+    }
+
+    setLastTapTime(now);
+
+    if (tapCount >= 2 && topRightZone) {
+      router.push(`/staffCheckout/${user.userId}`);
+    }
+  };
 
   const handleConfirmAndPay = async () => {
     try {
@@ -99,65 +124,6 @@ export default function StopScan({ user }: { user: any }) {
       }
     } catch (err) {
       alert("Could not confirm payment.");
-    }
-  };
-
-  const handleVerification = (itemId: string, isValid: boolean) => {
-    setVerificationStatus((prev) => ({
-      ...prev,
-      [itemId]: isValid,
-    }));
-  };
-
-  const submitSpotCheck = async () => {
-    if (!spotCheck) return;
-
-    setIsVerifying(true);
-    try {
-      const allVerified = spotCheck.items.every(
-        (item: any) => verificationStatus[item.id] !== undefined
-      );
-      if (!allVerified) {
-        alert("Please verify all items before submitting");
-        return;
-      }
-
-      const passed = spotCheck.items.every(
-        (item: any) => verificationStatus[item.id]
-      );
-
-      const response = await fetch("/api/userItems", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.userId,
-          token: user.token,
-          passed,
-          verifiedItems: spotCheck.items.map((item: any) => ({
-            id: item.id,
-            verified: verificationStatus[item.id],
-          })),
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to submit verification");
-      }
-
-      alert(
-        `Spot check ${passed ? "passed" : "failed"}. Your rank is now ${
-          data.newRank
-        }`
-      );
-      setSpotCheck(null);
-    } catch (error) {
-      console.error("Verification error:", error);
-      alert("Failed to submit verification. Please try again.");
-    } finally {
-      setIsVerifying(false);
     }
   };
 
@@ -205,69 +171,15 @@ export default function StopScan({ user }: { user: any }) {
     );
   }
 
-  if (spotCheck && confirmedScan === true) {
+  if (showSpotCheckScreen) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="container mx-auto px-4 py-8">
-          <header className="mb-8 text-center">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-              Spot Check Verification
-            </h1>
-            <p className="text-gray-600 mt-2">{spotCheck.message}</p>
-          </header>
-
-          <main className="max-w-3xl mx-auto">
-            <div className="space-y-4 mb-8">
-              {spotCheck.items.map((item: any) => (
-                <div
-                  key={item.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-gray-800 text-lg">
-                        {item.name}
-                      </h3>
-                      <p className="text-gray-600">Quantity: {item.quantity}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex space-x-4">
-                    <button
-                      onClick={() => handleVerification(item.id, true)}
-                      className={`px-4 py-2 rounded-md ${
-                        verificationStatus[item.id] === true
-                          ? "bg-green-500 text-white"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      Correct
-                    </button>
-                    <button
-                      onClick={() => handleVerification(item.id, false)}
-                      className={`px-4 py-2 rounded-md ${
-                        verificationStatus[item.id] === false
-                          ? "bg-red-500 text-white"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      Incorrect
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-center">
-              <button
-                onClick={submitSpotCheck}
-                disabled={isVerifying}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300"
-              >
-                {isVerifying ? "Submitting..." : "Submit Verification"}
-              </button>
-            </div>
-          </main>
+      <div className="fixed inset-0 bg-white flex items-center justify-center p-20">
+        <div
+          className="w-full h-full bg-red-600 text-white flex flex-col items-center justify-center text-4xl font-bold rounded gap-10"
+          onClick={handleScreenTap}
+        >
+          <h1>Spot Check</h1>
+          <p className="text-xl">Please alert staff</p>
         </div>
       </div>
     );
@@ -383,13 +295,15 @@ export default function StopScan({ user }: { user: any }) {
         )}
       </div>
 
-      <CustomConfirmModal
-        isOpen={showConfirmModal}
-        onClose={() => handleConfirm(false)}
-        onConfirm={() => handleConfirm(true)}
-        title="Scan Confirmation"
-        message="Did everything scan correctly?"
-      />
+      {!completedSpotCheck && (
+        <CustomConfirmModal
+          isOpen={showConfirmModal}
+          onClose={() => handleConfirm(false)}
+          onConfirm={() => handleConfirm(true)}
+          title="Scan Confirmation"
+          message="Did everything scan correctly?"
+        />
+      )}
     </div>
   );
 }

@@ -1,10 +1,10 @@
 import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
 
-function generateUserId(): string {
+function generateUserId(): number {
   const min = 1000000000;
   const max = 9999999999;
-  return Math.floor(Math.random() * (max - min + 1) + min).toString();
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 export async function POST(req: Request) {
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       );
     }
 
-    let userId = "";
+    let userId = 0;
     let exists = true;
 
     while (exists) {
@@ -60,11 +60,16 @@ export async function GET(req: Request): Promise<Response> {
         role: true,
         createdAt: true,
         suspended: true,
-
       },
     });
 
-    return NextResponse.json(users, { status: 200 });
+    const serializedUsers = users.map((user) => ({
+      ...user,
+      id: user.id.toString(),
+      userId: user.userId?.toString(),
+    }));
+
+    return NextResponse.json(serializedUsers, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
@@ -72,21 +77,49 @@ export async function GET(req: Request): Promise<Response> {
     );
   }
 }
+
 
 export async function PUT(req: Request): Promise<Response> {
   try {
-    const { id, email, name, role } = await req.json();
+    const body = await req.json();
+    const { id } = body;
 
-    if (!id || !email || !name) {
+    if (typeof id === 'undefined') {
       return NextResponse.json(
-        { error: "All fields are mandatory." },
+        { error: "User ID is required." },
+        { status: 400 }
+      );
+    }
+
+    const dataToUpdate: any = {};
+
+    if ('email' in body && 'name' in body && 'role' in body) {
+      const { email, name, role } = body;
+      if (!email || !name) {
+        return NextResponse.json(
+          { error: "Email and name are required when updating user info." },
+          { status: 400 }
+        );
+      }
+      dataToUpdate.email = email;
+      dataToUpdate.name = name;
+      dataToUpdate.role = role;
+    }
+
+    if ('suspended' in body) {
+      dataToUpdate.suspended = body.suspended;
+    }
+
+    if (Object.keys(dataToUpdate).length === 0) {
+      return NextResponse.json(
+        { error: "No valid fields provided for update." },
         { status: 400 }
       );
     }
 
     const user = await prisma.user.update({
-      where: { id },
-      data: { email, name, role },
+      where: { id: parseInt(id) },
+      data: dataToUpdate,
       select: {
         id: true,
         userId: true,
@@ -97,44 +130,20 @@ export async function PUT(req: Request): Promise<Response> {
       },
     });
 
-    return NextResponse.json({ success: true, user }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
+    const serializedUser = {
+      ...user,
+      id: user.id.toString(),
+      userId: user.userId?.toString(),
+    };
 
-export async function PATCH(req: Request): Promise<Response> {
-  try {
-    const { id, suspended } = await req.json();
+    const message =
+      'suspended' in body
+        ? user.suspended
+          ? "User suspended successfully"
+          : "User unsuspended successfully"
+        : "User updated successfully";
 
-    if (typeof id === 'undefined' || typeof suspended === 'undefined') {
-      return NextResponse.json(
-        { error: "ID and suspended status are required." },
-        { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.update({
-      where: { id },
-      data: { suspended },
-      select: {
-        id: true,
-        userId: true,
-        email: true,
-        name: true,
-        role: true,
-        suspended: true,
-      },
-    });
-
-    return NextResponse.json({ 
-      success: true, 
-      user,
-      message: user.suspended ? "User suspended successfully" : "User unsuspended successfully"
-    }, { status: 200 });
+    return NextResponse.json({ success: true, user: serializedUser, message }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Internal server error" },

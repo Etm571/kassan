@@ -110,7 +110,7 @@ export default function UserManagement() {
 
     try {
       const res = await fetch(`/api/admin/users`, {
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           id: user.id, 
