@@ -198,7 +198,10 @@ export async function GET(req: NextRequest) {
     include: { item: true },
   });
 
-  let responseData: any = { items: scannedItems };
+  let responseData: any = { 
+    items: scannedItems,
+    completedSpotCheck: user.completedSpotCheck 
+  };
 
   if (user.spotCheck) {
     const spotCheckItems = await prisma.spotCheckItem.findMany({
@@ -277,7 +280,7 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.user.update({
       where: { userId: BigInt(userId) },
-      data: { tokenExpiry: null, token: null, active: false },
+      data: { tokenExpiry: null, token: null, active: false, completedSpotCheck: false },
     });
 
     return NextResponse.json(
@@ -332,6 +335,7 @@ export async function PUT(req: NextRequest) {
       data: {
         rank: newRank,
         spotCheck: false,
+        completedSpotCheck: true,
       },
     });
 

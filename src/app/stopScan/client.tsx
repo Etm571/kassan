@@ -15,6 +15,7 @@ export default function StopScan({ user }: { user: any }) {
   const [showSpotCheckScreen, setShowSpotCheckScreen] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
+  const [completedSpotCheck, setCompletedSpotCheck] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -27,6 +28,7 @@ export default function StopScan({ user }: { user: any }) {
           setError(data.error || "Ett fel inträffade");
         } else {
           setItems(data.items);
+          setCompletedSpotCheck(!!data.completedSpotCheck);
           if (confirmedScan) {
             if (data.spotCheck) {
               setShowSpotCheckScreen(true);
@@ -44,10 +46,16 @@ export default function StopScan({ user }: { user: any }) {
   }, [user.userId, user.token, router, confirmedScan]);
 
   useEffect(() => {
-    if (!loading && !error && items.length > 0 && confirmedScan === null) {
+    if (
+      !loading &&
+      !error &&
+      items.length > 0 &&
+      confirmedScan === null &&
+      !completedSpotCheck
+    ) {
       setShowConfirmModal(true);
     }
-  }, [loading, error, items, confirmedScan]);
+  }, [loading, error, items, confirmedScan, completedSpotCheck]);
 
   const handleConfirm = (confirmed: any) => {
     setShowConfirmModal(false);
@@ -287,13 +295,15 @@ export default function StopScan({ user }: { user: any }) {
         )}
       </div>
 
-      <CustomConfirmModal
-        isOpen={showConfirmModal}
-        onClose={() => handleConfirm(false)}
-        onConfirm={() => handleConfirm(true)}
-        title="Scan Confirmation"
-        message="Did everything scan correctly?"
-      />
+      {!completedSpotCheck && (
+        <CustomConfirmModal
+          isOpen={showConfirmModal}
+          onClose={() => handleConfirm(false)}
+          onConfirm={() => handleConfirm(true)}
+          title="Scan Confirmation"
+          message="Did everything scan correctly?"
+        />
+      )}
     </div>
   );
 }
