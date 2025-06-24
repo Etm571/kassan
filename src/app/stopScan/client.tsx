@@ -71,7 +71,7 @@ export default function StopScan({ user }: { user: any }) {
     if (!loading && !error && items.length === 0 && !confirmedScan) {
       const timer = setTimeout(() => {
         signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
-      }, 4000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [items.length, loading, error, confirmedScan]);
