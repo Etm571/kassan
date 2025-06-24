@@ -93,15 +93,66 @@ export async function POST(req: NextRequest) {
           quantity: scanned.count || 1,
         },
       });
-
       await prisma.user.update({
         where: { userId: userId },
         data: { token: null, tokenExpiry: null },
       });
     }
 
+    let spotCheckTriggered = false;
+    let spotCheckItems: any[] = [];
+    let message: string | undefined = undefined;
+
+    if (!user.spotCheck) {
+      const rank = Math.max(1, Math.min(user.rank, 10));
+      const spotCheckProbability = Math.max(0.1, 1.0 - (rank - 1) * 0.1);
+      const random = Math.random();
+
+      console.log(`User rank: ${rank}, Spot check probability: ${spotCheckProbability}, Random value: ${random}`);
+
+      if (random < spotCheckProbability) {
+        const scannedItems = await prisma.scannedItem.findMany({
+          where: { userId: user.id },
+          include: { item: true },
+        });
+
+        const itemsToVerify = getRandomSpotCheckItems(scannedItems, 3);
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { spotCheck: true },
+        });
+        await prisma.spotCheckItem.deleteMany({ where: { userId: user.id } });
+        await Promise.all(
+          itemsToVerify.map(item =>
+            prisma.spotCheckItem.create({
+              data: {
+                userId: user.id,
+                itemId: item.item.id,
+                quantity: item.quantity,
+              },
+            })
+          )
+        );
+
+        spotCheckTriggered = true;
+        spotCheckItems = itemsToVerify.map(item => ({
+          id: item.id,
+          barcode: item.item.barcode,
+          name: item.item.name,
+          quantity: item.quantity,
+        }));
+        message = "Please verify these random items from your list.";
+      }
+    }
+
     return NextResponse.json(
-      { success: true, message: "Items saved successfully" },
+      {
+        success: true,
+        message: spotCheckTriggered ? message : "Items saved successfully",
+        spotCheck: spotCheckTriggered,
+        spotCheckItems: spotCheckTriggered ? spotCheckItems : undefined,
+      },
       { status: 200, headers: corsHeaders }
     );
   } catch (error) {
@@ -124,9 +175,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-const user = await prisma.user.findUnique({
-  where: { userId: BigInt(userId) },
-});
+  const user = await prisma.user.findUnique({
+    where: { userId: BigInt(userId) },
+  });
 
   if (!user) {
     return NextResponse.json(
@@ -162,44 +213,6 @@ const user = await prisma.user.findUnique({
       quantity: i.quantity,
     }));
     responseData.message = "You have pending spot check items to verify.";
-  } else {
-    const rank = Math.max(1, Math.min(user.rank, 10));
-    const spotCheckProbability = Math.max(0.1, 1.0 - (rank - 1) * 0.1);
-    const random = Math.random();
-
-    console.log(`User rank: ${rank}, Spot check probability: ${spotCheckProbability}, Random value: ${random}`);
-
-    if (true) {
-    //if (random < spotCheckProbability) {
-
-      const itemsToVerify = getRandomSpotCheckItems(scannedItems, 3);
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { spotCheck: true },
-      });
-      await prisma.spotCheckItem.deleteMany({ where: { userId: user.id } });
-      await Promise.all(
-        itemsToVerify.map(item =>
-          prisma.spotCheckItem.create({
-            data: {
-              userId: user.id,
-              itemId: item.item.id,
-              quantity: item.quantity,
-            },
-          })
-        )
-      );
-
-      responseData.spotCheck = true;
-      responseData.spotCheckItems = itemsToVerify.map(item => ({
-        id: item.id,
-        barcode: item.item.barcode,
-        name: item.item.name,
-        quantity: item.quantity,
-      }));
-      responseData.message = "Please verify these random items from your list.";
-    }
   }
 
   return NextResponse.json(responseData, { status: 200, headers: corsHeaders });

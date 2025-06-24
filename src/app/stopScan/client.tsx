@@ -18,6 +18,7 @@ export default function StopScan({ user }: { user: any }) {
       try {
         const res = await fetch(`/api/userItems?userId=${user.userId}`);
         const data = await res.json();
+        console.log("Fetched items:", data);
 
         if (!res.ok) {
           setError(data.error || "Ett fel inträffade");
@@ -37,7 +38,7 @@ export default function StopScan({ user }: { user: any }) {
     };
 
     fetchItems();
-  }, [user.userId, user.token, router]);
+  }, [user.userId, user.token, router, confirmedScan]);
 
   useEffect(() => {
     if (!loading && !error && items.length > 0 && confirmedScan === null) {
