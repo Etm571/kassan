@@ -114,33 +114,10 @@ export async function POST(req: NextRequest) {
           include: { item: true },
         });
 
-        const itemsToVerify = getRandomSpotCheckItems(scannedItems, 3);
-
         await prisma.user.update({
           where: { id: user.id },
           data: { spotCheck: true },
         });
-        await prisma.spotCheckItem.deleteMany({ where: { userId: user.id } });
-        await Promise.all(
-          itemsToVerify.map(item =>
-            prisma.spotCheckItem.create({
-              data: {
-                userId: user.id,
-                itemId: item.item.id,
-                quantity: item.quantity,
-              },
-            })
-          )
-        );
-
-        spotCheckTriggered = true;
-        spotCheckItems = itemsToVerify.map(item => ({
-          id: item.id,
-          barcode: item.item.barcode,
-          name: item.item.name,
-          quantity: item.quantity,
-        }));
-        message = "Please verify these random items from your list.";
       }
     }
 
@@ -184,13 +161,6 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (user.tokenExpiry && user.tokenExpiry < new Date()) {
-    return NextResponse.json(
-      { error: "Token expired" },
-      { status: 403, headers: corsHeaders }
-    );
-  }
-
   const scannedItems = await prisma.scannedItem.findMany({
     where: { userId: user.id },
     include: { item: true },
@@ -198,23 +168,9 @@ export async function GET(req: NextRequest) {
 
   let responseData: any = { 
     items: scannedItems,
-    completedSpotCheck: user.completedSpotCheck 
+    completedSpotCheck: user.completedSpotCheck,
+    spotCheck: user.spotCheck
   };
-
-  if (user.spotCheck) {
-    const spotCheckItems = await prisma.spotCheckItem.findMany({
-      where: { userId: user.id },
-      include: { item: true },
-    });
-    responseData.spotCheck = true;
-    responseData.spotCheckItems = spotCheckItems.map(i => ({
-      id: i.id,
-      barcode: i.item.barcode,
-      name: i.item.name,
-      quantity: i.quantity,
-    }));
-    responseData.message = "You have pending spot check items to verify.";
-  }
 
   return NextResponse.json(responseData, { status: 200, headers: corsHeaders });
 }
@@ -346,7 +302,6 @@ export async function PUT(req: NextRequest) {
       },
     });
 
-    await prisma.spotCheckItem.deleteMany({ where: { userId: user.id } });
 
     return NextResponse.json(
       {

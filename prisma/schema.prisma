@@ -33,7 +33,6 @@ model User {
   spotCheck          Boolean         @default(false)
   completedSpotCheck Boolean         @default(false)
   scannedItems       ScannedItem[]
-  spotCheckItems     SpotCheckItem[]
   createdAt          DateTime        @default(now())
   suspended          Boolean         @default(false)
 }
@@ -45,9 +44,7 @@ model Item {
   price     Decimal @db.Decimal(10, 2)
   stock     Int     @default(0)
   imagePath String?
-
   scannedItems   ScannedItem[]
-  spotCheckItems SpotCheckItem[]
 }
 
 model ScannedItem {
@@ -58,13 +55,4 @@ model ScannedItem {
   itemId    Int
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
-}
-
-model SpotCheckItem {
-  id       Int  @id @default(autoincrement())
-  userId   Int
-  itemId   Int
-  quantity Int
-  user     User @relation(fields: [userId], references: [id])
-  item     Item @relation(fields: [itemId], references: [id])
 }
