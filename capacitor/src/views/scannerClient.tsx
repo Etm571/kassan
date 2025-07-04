@@ -1,13 +1,25 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/scannerClient.css";
 import { useWebSocket } from "../contexts/websocket";
+import Echo from '../../plugins/echo';
+
+
+
 
 export default function ScannerClient() {
   const { connected, sendMessage } = useWebSocket();
   const navigate = useNavigate();
   const [tapCount, setTapCount] = useState(0);
   const hasSentFree = useRef(false);
+
+  useEffect(() => {
+    (async () => {
+      const { value } = await Echo.echo({ value: 'Hello World!' });
+      console.log('Response from native:', value);
+    })();
+  }, []);
+
 
   if (connected && !hasSentFree.current) {
     sendMessage({ type: "free" });
