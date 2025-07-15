@@ -3,22 +3,11 @@ import { useNavigate } from "react-router-dom";
 import "../styles/scannerClient.css";
 import { useWebSocket } from "../contexts/websocket";
 
-import { EMDK } from "capacitor-emdk";
-
 export default function ScannerClient() {
   const { connected, sendMessage } = useWebSocket();
   const navigate = useNavigate();
   const [tapCount, setTapCount] = useState(0);
   const hasSentFree = useRef(false);
-
-  async function unlockCradle() {
-    try {
-      await EMDK.unlockCradle();
-      alert("Cradle unlocked successfully.");
-    } catch (error) {
-      alert("Failed to unlock cradle: " + error);
-    }
-  }
 
   if (connected && !hasSentFree.current) {
     sendMessage({ type: "free" });
@@ -66,7 +55,6 @@ export default function ScannerClient() {
           <div className="footer-text">Kassan</div>
         </>
       )}
-      <button onClick={unlockCradle}>Låsupp</button>
     </div>
   );
 }

@@ -16,7 +16,7 @@
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@tailwindcss/vite": "^4.1.6",
     "capacitor-datawedge": "^0.3.4",
-    "capacitor-emdk": "file:capacitor-emdk-0.0.69.tgz",
+    "capacitor-emdk": "file:capacitor-emdk-0.1.1.tgz",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
