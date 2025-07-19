@@ -37,9 +37,6 @@ export default async function AdminHome() {
       <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">
         Welcome{session?.user?.name ? `, ${session.user.name}` : " Admin"}
       </h1>
-      <p className="text-gray-500 mb-8 text-center">
-        Quick access to all administrative features.
-      </p>
       <div className="grid grid-cols-1 gap-6">
         {features.map((feature) => (
           <Link
