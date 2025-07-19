@@ -9,6 +9,7 @@ export default function ScannerClient() {
   const [tapCount, setTapCount] = useState(0);
   const hasSentFree = useRef(false);
 
+
   if (connected && !hasSentFree.current) {
     sendMessage({ type: "free" });
     console.log("[ScannerClient] Sent free message (SSR-safe)");

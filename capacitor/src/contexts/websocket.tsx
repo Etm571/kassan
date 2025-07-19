@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
+import { EMDK } from "capacitor-emdk";
 
 interface WebSocketContextValue {
   connected: boolean;
@@ -66,6 +67,8 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
                 token: user.token,
               },
             });
+            EMDK.unlockCradle()
+
             break;
           case "freed":
             navigate("/");
