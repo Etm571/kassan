@@ -25,18 +25,16 @@ export default function StopScan({ user }: { user: any }) {
         console.log("Fetched items:", data);
 
         if (!res.ok) {
-          setError(data.error || "Ett fel inträffade");
+          setError(data.error || "An error occurred");
         } else {
           setItems(data.items);
           setCompletedSpotCheck(!!data.completedSpotCheck);
-          if (confirmedScan) {
-            if (data.spotCheck) {
-              setShowSpotCheckScreen(true);
-            }
+          if (confirmedScan && data.spotCheck) {
+            setShowSpotCheckScreen(true);
           }
         }
       } catch {
-        setError("Kunde inte hämta data");
+        setError("Could not fetch data");
       } finally {
         setLoading(false);
       }
@@ -87,7 +85,6 @@ export default function StopScan({ user }: { user: any }) {
     const y = e.clientY - bounds.top;
 
     const topRightZone = x > bounds.width - 100 && y < 100;
-
     const now = Date.now();
 
     if (topRightZone && now - lastTapTime < 600) {
@@ -107,15 +104,12 @@ export default function StopScan({ user }: { user: any }) {
     try {
       const res = await fetch(
         `/api/userItems?userId=${user.userId}&token=${user.token}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
       );
-
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Något gick fel vid betalning.");
+        alert(data.error || "Something went wrong with the payment.");
         signOut({ callbackUrl: "/" });
       } else {
         alert("Payment completed!");
@@ -215,28 +209,28 @@ export default function StopScan({ user }: { user: any }) {
                 No items found
               </h2>
               <p className="text-gray-500 mt-2">
-                You haven't scanned any items.
+                You haven&#39;t scanned any items.
               </p>
             </div>
           ) : (
             <>
               <div className="mb-6 grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
                 <div className="text-center">
-                  <p className="text-sm text-gray-500">Antal varor</p>
+                  <p className="text-sm text-gray-500">Items</p>
                   <p className="font-bold text-lg text-blue-500">
                     {items.length}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-gray-500">Totalt antal</p>
+                  <p className="text-sm text-gray-500">Total quantity</p>
                   <p className="font-bold text-lg text-blue-500">
-                    {items.reduce((sum, item) => sum + item.quantity, 0)} st
+                    {items.reduce((sum, item) => sum + item.quantity, 0)} pcs
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-gray-500">Total summa</p>
+                  <p className="text-sm text-gray-500">Total cost</p>
                   <p className="font-bold text-lg text-blue-500">
-                    {totalPrice.toFixed(2)} kr
+                    {totalPrice.toFixed(2)} SEK
                   </p>
                 </div>
               </div>
@@ -256,10 +250,10 @@ export default function StopScan({ user }: { user: any }) {
                     </div>
                     <div className="mt-3 flex justify-between items-center">
                       <p className="text-gray-600">
-                        {entry.quantity} x {entry.item.price} kr
+                        {entry.quantity} x {entry.item.price} SEK
                       </p>
                       <p className="text-gray-800 font-bold">
-                        {(entry.item.price * entry.quantity).toFixed(2)} kr
+                        {(entry.item.price * entry.quantity).toFixed(2)} SEK
                       </p>
                     </div>
                   </div>
@@ -268,9 +262,9 @@ export default function StopScan({ user }: { user: any }) {
 
               <div className="bg-blue-50 p-4 rounded-lg mb-8">
                 <div className="flex justify-between items-center">
-                  <p className="text-gray-800 font-medium">Att betala:</p>
+                  <p className="text-gray-800 font-medium">Amount to pay:</p>
                   <p className="text-2xl font-bold text-blue-600">
-                    {totalPrice.toFixed(2)} kr
+                    {totalPrice.toFixed(2)} SEK
                   </p>
                 </div>
               </div>
