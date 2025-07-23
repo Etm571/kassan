@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        - NEXT_PUBLIC_WEBSOCKET_SECRET=${AUTH_SECRET_WS}
+    container_name: nextjs
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: ${DATABASE_URL}
+      AUTH_SECRET: ${AUTH_SECRET_NEXTJS}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npx prisma generate && npx prisma migrate dev && node ./prisma/seed.mjs && npm run dev"
+
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+      target: dev
+    container_name: websocket
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_SECRET: ${AUTH_SECRET_WS}
+    volumes:
+      - ./websocket:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

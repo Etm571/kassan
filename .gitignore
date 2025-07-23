@@ -49,5 +49,3 @@ ngrok.yml
 
 capacitor/android/*
 !capacitor/android/app/
-
-docker-compose.yml
