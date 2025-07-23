@@ -16,7 +16,6 @@ const protectedRoutes: {
   // Page
   { path: "/admin", roles: ["ADMIN", "STAFF"], type: "page" },
   { path: "/admin/management", roles: ["ADMIN"], type: "page" },
-  { path: "/dashboard", roles: ["ADMIN", "STAFF", "CUSTOMER"], type: "page" },
 ];
 
 export async function middleware(request: NextRequest) {
