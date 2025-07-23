@@ -31,15 +31,16 @@ export async function POST(req: Request) {
       data: { userId, email, name },
     });
 
-    return NextResponse.json(
-      {
-        id: user.id,
-        userId: user.userId,
-        email: user.email,
-        name: user.name,
-      },
-      { status: 201 }
-    );
+  return NextResponse.json(
+  {
+    id: user.id.toString(),
+    userId: user.userId.toString(),
+    email: user.email,
+    name: user.name,
+  },
+  { status: 201 }
+);
+
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
@@ -147,6 +148,48 @@ export async function PUT(req: Request): Promise<Response> {
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request): Promise<Response> {
+  try {
+    const body = await req.json();
+    const { id } = body;
+    console.log("Deleting user with ID:", id);
+
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: "Invalid user ID." },
+        { status: 400 }
+      );
+    }
+
+    const idInt = parseInt(id, 10);
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id: idInt },
+    });
+
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: "User not found." },
+        { status: 404 }
+      );
+    }
+
+    await prisma.user.delete({
+      where: { id: idInt },
+    });
+
+    return NextResponse.json(
+      { success: true, message: "User deleted successfully." },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message || "Internal server error." },
       { status: 500 }
     );
   }

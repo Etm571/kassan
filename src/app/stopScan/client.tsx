@@ -68,7 +68,7 @@ export default function StopScan({ user }: { user: any }) {
   useEffect(() => {
     if (!loading && !error && items.length === 0 && !confirmedScan) {
       const timer = setTimeout(() => {
-        signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
+        signOut({ callbackUrl: ""});
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -114,7 +114,7 @@ export default function StopScan({ user }: { user: any }) {
       } else {
         alert("Payment completed!");
         setItems([]);
-        signOut({ callbackUrl: "https://" + process.env.NEXT_PUBLIC_WEBAPP });
+        signOut({ callbackUrl: "/" });
       }
     } catch (err) {
       alert("Could not confirm payment.");

@@ -83,17 +83,19 @@ export default function UserManagement() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (user: User) => {
     const confirmed = confirm("Are you sure you want to delete this user?");
     if (!confirmed) return;
 
-    const res = await fetch(`/api/admin/users/${id}`, {
+    const res = await fetch(`/api/admin/users/`, {
       method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(user)
     });
 
     if (res.ok) {
       setMessage("User deleted successfully");
-      setUsers((prev) => prev.filter((user) => user.id !== id));
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
     } else {
       const error = await res.json();
       setMessage(`Error: ${error.error || "Failed to delete user"}`);
@@ -144,7 +146,7 @@ export default function UserManagement() {
     <div className="max-w-full mx-auto p-4 bg-white">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-          <FiUser className="mr-2" /> User Management
+          <FiUser className="mr-2" /> Users
         </h1>
         <div className="relative w-64">
           <FiSearch className="absolute left-3 top-3 text-gray-400" />
@@ -274,7 +276,7 @@ export default function UserManagement() {
                     {user.suspended ? "🔒" : "🔓"}
                   </button>
                   <button
-                    onClick={() => handleDelete(user.id)}
+                    onClick={() => handleDelete(user)}
                     className="p-2 text-red-600 hover:text-red-800 rounded hover:bg-red-50"
                     title="Delete"
                   >

@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  webpack: (config, options) => {
+    return config;
+  },
+  experimental: {
+    turbo: false as any,
+  },
 };
 
 export default nextConfig;

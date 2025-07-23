@@ -12,7 +12,7 @@ interface Scanner {
 
 async function getScanner(id: string): Promise<Scanner | null> {
   try {
-    const res = await fetch(`https://${process.env.NEXT_PUBLIC_WEBSOCKET}/scanners`, {
+    const res = await fetch(`http://websocket:8080/scanners`, {
       headers: {
         "x-auth-secret": process.env.NEXT_PUBLIC_WEBSOCKET_SECRET!,
         "ngrok-skip-browser-warning": "true",
