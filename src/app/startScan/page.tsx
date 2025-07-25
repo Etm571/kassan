@@ -29,7 +29,7 @@ export default async function ScanSuccessPage() {
     const user = session?.user;
     try {
       const res = await fetch(
-        `https://${process.env.NEXT_PUBLIC_WEBSOCKET}/assign`,
+        `https://${process.env.NEXT_PUBLIC_WEBSOCKET_URL}/assign`,
         {
           method: "POST",
           headers: {
