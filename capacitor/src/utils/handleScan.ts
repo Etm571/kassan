@@ -1,5 +1,6 @@
 import type { Item } from "../types/types";
 
+
 interface HandleScanDeps {
   showRemoveOverlay: boolean;
   setItems: React.Dispatch<React.SetStateAction<Item[]>>;
@@ -13,6 +14,43 @@ interface HandleScanDeps {
   log?: (msg: string) => void;
   navigate: () => void;
 }
+
+export const submitScan = async (
+  getItems: () => Item[],
+  userId: string,
+  token: string,
+  log?: (msg: string) => void,
+  navigate?: () => void
+) => {
+  const itemsToSend = getItems();
+  log?.(`Skicka varor: ${JSON.stringify(itemsToSend)}`);
+  try {
+    const backendUrl =
+      localStorage.getItem("backendUrl") || import.meta.env.VITE_WEBAPP;
+
+    await fetch(
+      `https://${backendUrl}/api/userItems?ngrok-skip-browser-warning=true`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: itemsToSend,
+          userId,
+          token,
+        }),
+      }
+    );
+    log?.("Varor skickade!");
+    if (navigate) {
+      navigate();
+    }
+  } catch (error) {
+    log?.(`Fel: ${error}`);
+  }
+}
+
 
 export const handleScan =
   ({
@@ -28,37 +66,15 @@ export const handleScan =
     log,
     navigate,
   }: HandleScanDeps) =>
+
+    
+
   async (event: any) => {
     log?.(`Scan event: ${JSON.stringify(event)}`);
     const scannedCode = event.data || event.barcode;
 
     if (scannedCode === "2980000000003") {
-      const itemsToSend = getItems();
-      log?.(`Skicka varor: ${JSON.stringify(itemsToSend)}`);
-      try {
-        const backendUrl =
-          localStorage.getItem("backendUrl") || import.meta.env.VITE_WEBAPP;
-
-        await fetch(
-          `https://${backendUrl}/api/userItems?ngrok-skip-browser-warning=true`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              items: itemsToSend,
-              userId,
-              token,
-            }),
-          }
-        );
-        log?.("Varor skickade!");
-        navigate();
-      } catch (error) {
-        log?.(`Fel: ${error}`);
-      }
-      return;
+      submitScan(getItems, userId, token, log, navigate);
     }
 
     if (showRemoveOverlay) {

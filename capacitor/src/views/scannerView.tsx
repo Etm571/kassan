@@ -4,6 +4,7 @@ import "../styles/scannerView.css";
 import { useLocation } from "react-router-dom";
 import { handleScan as createHandleScan } from "../utils/handleScan";
 import { useNavigate } from "react-router-dom";
+import usePowerConnectedListener from "../utils/powerConnectedListener";
 
 export default function ScannerView() {
   const [items, setItems] = useState<
@@ -113,7 +114,7 @@ export default function ScannerView() {
     if (!lastScannedBarcode) return;
     const timeout = setTimeout(() => {
       setLastScannedBarcode(null);
-    }, 600); // match animation duration
+    }, 600);
     return () => clearTimeout(timeout);
   }, [lastScannedBarcode]);
 
@@ -192,6 +193,7 @@ export default function ScannerView() {
       navigate("/");
     },
   });
+  
 
   const simulateScan = () => {
     let nextBarcode = barcodeInt;
@@ -266,6 +268,16 @@ export default function ScannerView() {
       minute: "2-digit",
       second: undefined,
     });
+
+  usePowerConnectedListener(
+    () => itemsRef.current,
+    state?.userId || "unknown-id",
+    state?.token || "unknown-token",
+    (msg: string) => setScanLog((prev) => [...prev, msg]),
+    () => {
+      navigate("/");
+    }
+  );
 
   return (
     <div className="container">

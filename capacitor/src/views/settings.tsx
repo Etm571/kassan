@@ -5,24 +5,28 @@ import "../styles/settings.css"
 export default function SettingsScreen() {
   const [backendUrl, setBackendUrl] = useState("")
   const [websocketUrl, setWebsocketUrl] = useState("")
+  const [websocketSecret, setWebsocketSecret] = useState("")
   const [adminPin, setAdminPin] = useState("")
   const navigate = useNavigate()
 
   useEffect(() => {
     const savedBackend = localStorage.getItem("backendUrl") || import.meta.env.VITE_WEBAPP|| ""
     const savedWebsocket = localStorage.getItem("websocketUrl") || import.meta.env.VITE_WEBSOCKET || ""
+    const savedWebsocketSecret = localStorage.getItem("websocetSecret") || import.meta.env.VITE_WEBSOCKET_SECRET || ""
     const savedPin = localStorage.getItem("adminPin") || import.meta.env.VITE_ADMIN_PIN || ""
 
     setBackendUrl(savedBackend)
     setWebsocketUrl(savedWebsocket)
     setAdminPin(savedPin)
+    setWebsocketSecret(savedWebsocketSecret)
   }, [])
 
   const handleSave = () => {
     localStorage.setItem("backendUrl", backendUrl)
     localStorage.setItem("websocketUrl", websocketUrl)
     localStorage.setItem("adminPin", adminPin)
-    alert("Inställningar sparade!")
+    localStorage.setItem("websocketSecret", websocketSecret)
+    alert("Settings saved!")
   }
 
   const handleBack = () => {
@@ -31,7 +35,7 @@ export default function SettingsScreen() {
 
   return (
     <div className="settings-container">
-      <h2>Inställningar</h2>
+      <h2>Settings</h2>
 
       <label>
         Backend-adress:
@@ -50,6 +54,14 @@ export default function SettingsScreen() {
           onChange={(e) => setWebsocketUrl(e.target.value)}
         />
       </label>
+      <label>
+        Websocket-secret:
+        <input
+          type="text"
+          value={websocketSecret}
+          onChange={(e) => setWebsocketSecret(e.target.value)}
+        />
+      </label>
 
       <label>
         Admin-PIN:
@@ -60,8 +72,8 @@ export default function SettingsScreen() {
         />
       </label>
 
-      <button onClick={handleSave}>Spara</button>
-      <button className="back-button" onClick={handleBack}>Tillbaka</button>
+      <button onClick={handleSave}>Save</button>
+      <button className="back-button" onClick={handleBack}>Back</button>
     </div>
   )
 }

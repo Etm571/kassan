@@ -39,7 +39,12 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
 
     const storedHostname =
       localStorage.getItem("websocketUrl") || import.meta.env.VITE_WEBSOCKET;
-    const secret = import.meta.env.VITE_WEBSOCKET_SECRET || "";
+
+    const secret =
+      localStorage.getItem("websocketSecret") ||
+      import.meta.env.VITE_WEBSOCKET_SECRET ||
+      "not-set";
+      
     const encodedSecret = encodeURIComponent(secret);
     const url = `wss://${storedHostname}?token=${encodedSecret}`;
 
@@ -67,7 +72,7 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
                 token: user.token,
               },
             });
-            EMDK.unlockCradle()
+            EMDK.unlockCradle();
 
             break;
           case "freed":
