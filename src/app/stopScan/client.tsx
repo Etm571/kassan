@@ -68,7 +68,7 @@ export default function StopScan({ user }: { user: any }) {
   useEffect(() => {
     if (!loading && !error && items.length === 0 && !confirmedScan) {
       const timer = setTimeout(() => {
-        signOut({ callbackUrl: ""});
+        signOut({ callbackUrl: "" });
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -214,44 +214,25 @@ export default function StopScan({ user }: { user: any }) {
             </div>
           ) : (
             <>
-              <div className="mb-6 grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Items</p>
-                  <p className="font-bold text-lg text-blue-500">
-                    {items.length}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Total quantity</p>
-                  <p className="font-bold text-lg text-blue-500">
-                    {items.reduce((sum, item) => sum + item.quantity, 0)} pcs
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Total cost</p>
-                  <p className="font-bold text-lg text-blue-500">
-                    {totalPrice.toFixed(2)} SEK
-                  </p>
-                </div>
-              </div>
 
-                 <div
-                className="space-y-3 mb-8"
+
+              <div
+                className="mb-8"
                 style={{
-                  maxHeight: 320,
+                  maxHeight: 400,
                   overflowY: "auto",
                   border: "1px solid #e5e7eb",
                   borderRadius: 8,
                   background: "#fff",
                   padding: 8,
                 }}
-              >  
-	      {items.map((entry) => (
+              >
+                {items.map((entry) => (
                   <div
                     key={entry.id}
-                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    className="bg-white border-b border-gray-200 p-1 transition-shadow"
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex items-start">
                       <div>
                         <h3 className="font-medium text-gray-800 text-lg">
                           {entry.item.name}
@@ -268,16 +249,14 @@ export default function StopScan({ user }: { user: any }) {
                     </div>
                   </div>
                 ))}
-              </div>
 
-              <div className="bg-blue-50 p-4 rounded-lg mb-8">
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-800 font-medium">Amount to pay:</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {totalPrice.toFixed(2)} SEK
-                  </p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-800 font-medium">Amount to pay:</p>
+                    <p className="text-2xl font-bold text-black">
+                      {totalPrice.toFixed(2)} SEK
+                    </p>
+                  </div>
                 </div>
-              </div>
             </>
           )}
         </main>

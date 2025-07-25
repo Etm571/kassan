@@ -25,7 +25,6 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
 );
 
     wsRef.current = ws;
-    console.log(ws)
     ws.onopen = () => setIsConnected(true);
     ws.onclose = () => setIsConnected(false);
     ws.onmessage = (event) => {

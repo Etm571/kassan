@@ -17,9 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: dev
-      args:
-        - NEXT_PUBLIC_WEBSOCKET_SECRET=${AUTH_SECRET_WS}
-        - NEXT_PUBLIC_WEBSOCKET_URL=${WEBSOCKET_URL}
+      
     container_name: nextjs
     depends_on:
       - postgres
@@ -30,7 +28,9 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       AUTH_SECRET: ${AUTH_SECRET_NEXTJS}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
-      WEBSOCKET_URL: ${WEBSOCKET_URL}
+      NEXT_PUBLIC_WEBSOCKET_URL: ${WEBSOCKET_URL}
+      NEXT_PUBLIC_WEBSOCKET_SECRET: ${AUTH_SECRET_WS}
+
     volumes:
       - .:/app
       - /app/node_modules
