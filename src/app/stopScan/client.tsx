@@ -235,7 +235,7 @@ export default function StopScan({ user }: { user: any }) {
                 </div>
               </div>
 
-              <div
+                 <div
                 className="space-y-3 mb-8"
                 style={{
                   maxHeight: 320,
@@ -245,8 +245,8 @@ export default function StopScan({ user }: { user: any }) {
                   background: "#fff",
                   padding: 8,
                 }}
-              >
-                {items.map((entry) => (
+              >  
+	      {items.map((entry) => (
                   <div
                     key={entry.id}
                     className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"

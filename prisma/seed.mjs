@@ -30,7 +30,7 @@ async function main() {
 
     console.log(`Admin user created with userId ${newUserId}`);
   } else {
-    console.log('Admin user already exists');
+    console.log('Admin user already exists with id: ', existingAdmin.userId);
   }
 }
 
