@@ -44,7 +44,7 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
       localStorage.getItem("websocketSecret") ||
       import.meta.env.VITE_WEBSOCKET_SECRET ||
       "not-set";
-      
+
     const encodedSecret = encodeURIComponent(secret);
     const url = `wss://${storedHostname}?token=${encodedSecret}`;
 
@@ -89,17 +89,22 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
     ws.onclose = () => {
       setConnected(false);
       console.warn("[WebSocket] Connection closed");
+
       if (reconnectAttemptsRef.current < maxReconnectAttempts) {
         const timeout = 2000 * (reconnectAttemptsRef.current + 1);
         setTimeout(() => {
           reconnectAttemptsRef.current += 1;
-          console.log(
-            `[WebSocket] Attempting reconnect #${reconnectAttemptsRef.current}`
-          );
+
           initWebSocket();
         }, timeout);
       } else {
-        console.error("[WebSocket] Max reconnect attempts reached");
+        const intervalId = setInterval(() => {
+          if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+            initWebSocket();
+          } else {
+            clearInterval(intervalId);
+          }
+        }, 60000);
       }
     };
 
