@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import CustomConfirmModal from "@/app/components/popup";
+import NoItemsFound from "./components/noitemsfound";
+import HelpScreen from "./components/helpScreen";
 
 export default function StopScan({ user }: { user: any }) {
   const router = useRouter();
@@ -13,8 +15,7 @@ export default function StopScan({ user }: { user: any }) {
   const [confirmedScan, setConfirmedScan] = useState<boolean | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSpotCheckScreen, setShowSpotCheckScreen] = useState(false);
-  const [tapCount, setTapCount] = useState(0);
-  const [lastTapTime, setLastTapTime] = useState(0);
+
   const [completedSpotCheck, setCompletedSpotCheck] = useState(false);
 
   useEffect(() => {
@@ -79,26 +80,6 @@ export default function StopScan({ user }: { user: any }) {
     0
   );
 
-  const handleScreenTap = (e: React.MouseEvent<HTMLDivElement>) => {
-    const bounds = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - bounds.left;
-    const y = e.clientY - bounds.top;
-
-    const topRightZone = x > bounds.width - 100 && y < 100;
-    const now = Date.now();
-
-    if (topRightZone && now - lastTapTime < 600) {
-      setTapCount((prev) => prev + 1);
-    } else {
-      setTapCount(1);
-    }
-
-    setLastTapTime(now);
-
-    if (tapCount >= 2 && topRightZone) {
-      router.push(`/staffCheckout/${user.userId}`);
-    }
-  };
 
   const handleConfirmAndPay = async () => {
     try {
@@ -167,15 +148,7 @@ export default function StopScan({ user }: { user: any }) {
 
   if (showSpotCheckScreen) {
     return (
-      <div className="fixed inset-0 bg-white flex items-center justify-center p-20">
-        <div
-          className="w-full h-full bg-red-600 text-white flex flex-col items-center justify-center text-4xl font-bold rounded gap-10"
-          onClick={handleScreenTap}
-        >
-          <h1>Spot Check</h1>
-          <p className="text-xl">Please alert staff</p>
-        </div>
-      </div>
+      <HelpScreen user={user} />
     );
   }
 
@@ -190,28 +163,7 @@ export default function StopScan({ user }: { user: any }) {
 
         <main className="max-w-3xl mx-auto">
           {items.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-12 w-12 text-gray-400 mx-auto"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <h2 className="text-xl font-medium text-gray-600 mt-4">
-                No items found
-              </h2>
-              <p className="text-gray-500 mt-2">
-                You haven&#39;t scanned any items.
-              </p>
-            </div>
+            <NoItemsFound />
           ) : (
             <>
 
