@@ -9,7 +9,7 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
-    implementation project(':capacitor-android-intents')
+    implementation project(':capacitor-android-intents-capacitor6')
     implementation project(':capacitor-datawedge')
     implementation project(':capacitor-emdk')
 
