@@ -1,0 +1,23 @@
+@import url("https://fonts.googleapis.com/css2?family=Carattere&family=Dancing+Script:wght@400..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,800;1,600&display=swap");
+
+.empty-state {
+  width: 80%;
+}
+
+.empty-state #head {
+  color: red;
+  font-family: "Carattere", cursive;
+  font-size: 1.5rem;
+}
+
+.empty-state #paragraph {
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+
+  color: rgb(65, 60, 60);
+  font-size: 1.4rem;
+}
