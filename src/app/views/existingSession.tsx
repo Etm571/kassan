@@ -3,17 +3,19 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { ClockIcon } from '@heroicons/react/24/outline';
+import { signOut } from "next-auth/react";
+
 
 export default function ActiveScanningSession() {
   const router = useRouter();
 
-  useEffect(() => {
+ useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('/');
-    }, 5000);
+      signOut({ callbackUrl: "/" });
+    }, 5 * 1000);
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

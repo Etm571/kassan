@@ -24,7 +24,6 @@ async function main() {
         email: adminEmail,
         name: 'Admin',
         role: Role.ADMIN,
-        active: true,
       },
     });
 
