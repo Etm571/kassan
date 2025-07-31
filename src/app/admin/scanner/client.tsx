@@ -174,7 +174,9 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
                               src={`/os-icons/${scanner.deviceInfo.operatingSystem.toLowerCase()}.png`}
                               alt={scanner.deviceInfo.operatingSystem}
                               width={30}
-                              height={20}
+                              height={25}
+                              style={{ width: "30px", height: "30px" }}
+
                               className="inline-block"
                             />
                             <span>{scanner.deviceInfo.osVersion}</span>
@@ -183,9 +185,10 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
                           <Image
                             src={`/os-icons/globe.png`}
                             alt={scanner.deviceInfo.operatingSystem}
-                            width={30}
-                            height={20}
                             className="inline-block"
+                            style={{ width: "30px", height: "20px" }}
+                            width={30}
+                            height={25}
                           />
                         )}
                       </div>
