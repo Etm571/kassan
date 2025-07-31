@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import { handleScan as createHandleScan } from "../utils/handleScan";
 import { useNavigate } from "react-router-dom";
 import usePowerConnectedListener from "../utils/powerConnectedListener";
+import EmptyCart from "../components/emptyCart";
 
 export default function ScannerView() {
   const [items, setItems] = useState<
@@ -25,6 +26,8 @@ export default function ScannerView() {
   const [lastScannedBarcode, setLastScannedBarcode] = useState<string | null>(
     null
   );
+  const footerRef = useRef<HTMLDivElement>(null);
+  const [bubbleBottom, setBubbleBottom] = useState(140);
 
   const location = useLocation();
   const state = location.state as {
@@ -35,6 +38,13 @@ export default function ScannerView() {
     itemCacheEntries?: [string, { name: string; price?: number }][];
   };
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (footerRef.current) {
+      const height = footerRef.current.getBoundingClientRect().height;
+      setBubbleBottom(height - 17);
+    }
+  }, []);
 
   const formatPrice = (price?: number) => {
     if (typeof price !== "number" || isNaN(price)) return "0";
@@ -193,7 +203,7 @@ export default function ScannerView() {
       navigate("/");
     },
   });
-  
+
 
   const simulateScan = () => {
     let nextBarcode = barcodeInt;
@@ -313,14 +323,14 @@ export default function ScannerView() {
 
       <div className="scanned-items">
         <div className="items-scroll" ref={itemsContainerRef}>
+          {items.length === 0 && <EmptyCart />}
           <div className="items-list">
             {items.map((item, index) => (
               <div
                 key={item.barcode}
                 className={
                   "item-row" +
-                  (item.barcode === lastScannedBarcode &&
-                  index !== items.length - 1
+                  (item.barcode === lastScannedBarcode && index !== items.length - 1
                     ? " new-item-row-animate"
                     : "")
                 }
@@ -350,9 +360,14 @@ export default function ScannerView() {
         </div>
       </div>
 
+
       <div
         className="time-display-bubble"
-        style={{ display: "flex", alignItems: "center" }}
+        style={{
+          bottom: `${bubbleBottom}px`,
+          display: "flex",
+          alignItems: "center",
+        }}
       >
         <img
           src="/clock.png"
@@ -362,7 +377,7 @@ export default function ScannerView() {
         <span>{formatTime(currentTime)}</span>
       </div>
 
-      <div className="summary-footer">
+      <div className="summary-footer" ref={footerRef}>
         <div className="summary-row summary-total" onClick={handleSummaryClick}>
           <span>{totalItems === 1 ? "1 vara" : `${totalItems} varor`}</span>
           <span>{formatPrice(totalPrice)} kr</span>
