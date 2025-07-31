@@ -12,7 +12,7 @@ export default function ScannerClient() {
   const hasSentFree = useRef(false);
 
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
-  const [batteryInfo, setBatteryInfo] = useState<BatteryInfo | null>(null);;
+  const [batteryInfo, setBatteryInfo] = useState<BatteryInfo | null>(null);
 
   if (connected && !hasSentFree.current) {
     sendMessage({ type: "free" });
