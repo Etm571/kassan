@@ -1,5 +1,6 @@
 export default function NoItemsFound() {
-  return (
+    
+    return (
 
 <div className="text-center py-12 bg-gray-50 rounded-lg">
     <svg

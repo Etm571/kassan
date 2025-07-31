@@ -31,15 +31,15 @@ export async function POST(req: Request) {
       data: { userId, email, name },
     });
 
-  return NextResponse.json(
-  {
-    id: user.id.toString(),
-    userId: user.userId.toString(),
-    email: user.email,
-    name: user.name,
-  },
-  { status: 201 }
-);
+    return NextResponse.json(
+      {
+        id: user.id.toString(),
+        userId: user.userId.toString(),
+        email: user.email,
+        name: user.name,
+      },
+      { status: 201 }
+    );
 
   } catch (error: any) {
     return NextResponse.json(
@@ -61,6 +61,7 @@ export async function GET(req: Request): Promise<Response> {
         role: true,
         createdAt: true,
         suspended: true,
+        active: true,
       },
     });
 
