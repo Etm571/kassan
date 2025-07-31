@@ -1,26 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useWebSocket } from "@/app/providers/websocket";
-import { 
-  FiWifi, 
-  FiWifiOff, 
-  FiRefreshCw, 
-  FiRadio, 
-  FiCheckCircle, 
+import {
+  FiWifi,
+  FiWifiOff,
+  FiRefreshCw,
+  FiRadio,
+  FiCheckCircle,
   FiClock,
   FiSearch,
   FiChevronLeft,
   FiChevronRight,
   FiUser
 } from "react-icons/fi";
+import getScanners from "./getScanners";
 
 interface Scanner {
   id: string;
   status: "free" | "occupied";
   user: { name: string; userId: string } | null;
   startTime: string | null;
+  deviceInfo?: {
+    model: string;
+    operatingSystem: string;
+    osVersion: string;
+    manufacturer: string;
+    webViewVersion: string;
+  };
 }
 
 export default function ScannerClient({ initialScanners }: { initialScanners: Scanner[] }) {
@@ -35,14 +44,18 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
   useEffect(() => {
     const handler = (data: any) => {
       if (data.type === "scanner-list") {
-        setScanners(data.scanners || []);
+        getScanners().then(fetchedScanners => {
+          setScanners(fetchedScanners);
+        }).catch(err => {
+          console.error("Failed:", err);
+        });
       }
     };
     addMessageHandler(handler);
     return () => removeMessageHandler(handler);
   }, [addMessageHandler, removeMessageHandler]);
 
-  const filteredScanners = scanners.filter(scanner => 
+  const filteredScanners = scanners.filter(scanner =>
     scanner.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (scanner.user?.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     scanner.status.toLowerCase().includes(searchTerm.toLowerCase())
@@ -56,15 +69,8 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
 
   const refreshScanners = async () => {
     setIsLoading(true);
-    try {
-      const res = await fetch("/api/admin/scanners");
-      const data = await res.json();
-      setScanners(data.scanners || []);
-    } catch (error) {
-      console.error("Failed to refresh scanners:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    await getScanners()
+    setIsLoading(false);
   };
 
   return (
@@ -102,81 +108,124 @@ export default function ScannerClient({ initialScanners }: { initialScanners: Sc
       </div>
 
       <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="min-w-full">
-          <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 p-3 font-medium text-gray-700 gap-4">
-            <div className="col-span-2">Status</div>
-            <div className="col-span-3">Scanner ID</div>
-            <div className="col-span-3">User</div>
-            <div className="col-span-3">Duration</div>
-            <div className="col-span-1">Actions</div>
-          </div>
-
-          {isLoading ? (
-            <div className="p-6 text-center text-gray-500">
-              <FiRefreshCw className="animate-spin inline-block mr-2" />
-              Loading scanners...
-            </div>
-          ) : paginatedScanners.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
-              {searchTerm ? "No matching scanners found" : "No scanners available"}
-            </div>
-          ) : (
-            paginatedScanners.map((scanner) => (
-              <div 
-                key={scanner.id} 
-                className="grid grid-cols-12 border-b border-gray-100 hover:bg-gray-50 p-3 items-center gap-4"
-              >
-                <div className="col-span-2">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    scanner.status === "free" 
-                      ? "bg-green-100 text-green-800" 
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Scanner ID
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Device Info
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                User
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Duration
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {isLoading ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <FiRefreshCw className="animate-spin inline-block mr-2" />
+                  Loading scanners...
+                </td>
+              </tr>
+            ) : paginatedScanners.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  {searchTerm ? "No matching scanners found" : "No scanners available"}
+                </td>
+              </tr>
+            ) : (
+              paginatedScanners.map((scanner) => (
+                <tr key={scanner.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${scanner.status === "free"
+                      ? "bg-green-100 text-green-800"
                       : "bg-yellow-100 text-yellow-800"
-                  }`}>
-                    {scanner.status === "free" ? (
-                      <FiCheckCircle className="mr-1" />
+                      }`}>
+                      {scanner.status === "free" ? (
+                        <FiCheckCircle className="mr-1" />
+                      ) : (
+                        <FiClock className="mr-1" />
+                      )}
+                      {scanner.status.charAt(0).toUpperCase() + scanner.status.slice(1)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {scanner.id.split("-")[0]}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {scanner.deviceInfo ? (
+                      <div className="flex items-center space-x-2 text-xs text-gray-400">
+                        <span className="font-medium text-sm text-black">{scanner.deviceInfo.model}</span>
+                        {["android", "ios"].includes(scanner.deviceInfo.operatingSystem.toLowerCase()) ? (
+                          <>
+                            <Image
+                              src={`/os-icons/${scanner.deviceInfo.operatingSystem.toLowerCase()}.png`}
+                              alt={scanner.deviceInfo.operatingSystem}
+                              width={30}
+                              height={20}
+                              className="inline-block"
+                            />
+                            <span>{scanner.deviceInfo.osVersion}</span>
+                          </>
+                        ) : (
+                          <Image
+                            src={`/os-icons/globe.png`}
+                            alt={scanner.deviceInfo.operatingSystem}
+                            width={30}
+                            height={20}
+                            className="inline-block"
+                          />
+                        )}
+                      </div>
                     ) : (
-                      <FiClock className="mr-1" />
+                      <span className="text-gray-400">-</span>
                     )}
-                    {scanner.status.charAt(0).toUpperCase() + scanner.status.slice(1)}
-                  </span>
-                </div>
-                <div className="col-span-3 font-medium"> {/* Increased from col-span-2 to col-span-3 */}
-                  <span className="block truncate" title={scanner.id}>
-                    {scanner.id}
-                  </span>
-                </div>
-                <div className="col-span-3"> {/* Decreased from col-span-4 to col-span-3 */}
-                  {scanner.user ? (
-                    <div className="flex items-center">
-                      <FiUser className="mr-2 text-gray-400" />
-                      <span>{scanner.user.name}</span>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </div>
-                <div className="col-span-3 text-sm text-gray-500">
-                  {scanner.startTime ? (
-                    new Date(scanner.startTime).toLocaleTimeString()
-                  ) : (
-                    "-"
-                  )}
-                </div>
-                <div className="col-span-1">
-                  <button
-                    onClick={() => router.push(`/admin/scanner/${scanner.id}`)}
-                    className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
-                  >
-                    View
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {scanner.user ? (
+                      <div className="flex items-center">
+                        <FiUser className="mr-2 text-gray-400" />
+                        <span>{scanner.user.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {scanner.startTime ? (
+                      new Date(scanner.startTime).toLocaleTimeString()
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <button
+                      onClick={() => router.push(`/admin/scanner/${scanner.id}`)}
+                      className="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50"
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <div className="text-sm text-gray-500">
