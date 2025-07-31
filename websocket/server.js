@@ -73,6 +73,8 @@ wss.on("connection", (ws, req) => {
           ws,
           status: "free",
           user: null,
+          deviceInfo: data.deviceInfo,
+          batteryInfo: data.batteryInfo,
         });
         ws.isRegistered = true;
         broadcastScannerList();
@@ -192,6 +194,8 @@ app.get("/scanners", (req, res) => {
     user: scanner.user || null,
     startTime: scanner.startTime || null,
     typ: "scanner",
+    deviceInfo: scanner.deviceInfo || "gröt",
+    batteryInfo: scanner.batteryInfo || "gröt",
   }));
 
   res.json({ scanners: scannerList });

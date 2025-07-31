@@ -1,37 +1,45 @@
 import ScannerDetailClient from "./client";
+import getScanners from "../getScanners";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-interface Scanner {
+export interface Scanner {
   id: string;
   status: "free" | "occupied";
   user: { name: string; userId: string } | null;
   startTime: string | null;
+  deviceInfo: {
+    model: string;
+    osVersion?: string;
+    operatingSystem?: string;
+    androidSDKVersion?: number;
+    manufacturer?: string;
+    webViewVersion?: string;
+  };
+  batteryInfo?: {
+    batteryLevel?: number;
+    isCharging?: boolean;
+  };
 }
+
 
 async function getScanner(id: string): Promise<Scanner | null> {
   try {
-    const res = await fetch(`http://websocket:8080/scanners`, {
-      headers: {
-        "x-auth-secret": process.env.NEXT_PUBLIC_WEBSOCKET_SECRET!,
-        "ngrok-skip-browser-warning": "true",
-      },
-      cache: "no-store",
-    });
+    const scanners = await getScanners();
 
-    if (!res.ok) {
-      console.error("Failed to fetch scanners:", res.statusText);
+    if (!Array.isArray(scanners)) {
       return null;
     }
 
-    const data = await res.json();
-    return data.scanners.find((s: Scanner) => s.id === id) || null;
+    return scanners.find((s: Scanner) => s.id === id) || null;
   } catch (error) {
     console.error("Error fetching scanner:", error);
     return null;
   }
 }
+
+
 export default async function ScannerPage(
   props: {
     params: Promise<{ id: string }>;
