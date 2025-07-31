@@ -7,7 +7,8 @@ export type Item = {
 
 export type DeviceInfo = {
   model: string;
-  operatingSystem: string;
+  osVersion?: string;
+  operatingSystem?: string;
   androidSDKVersion?: number;
   manufacturer?: string;
   webViewVersion?: string;

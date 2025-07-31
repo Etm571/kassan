@@ -56,6 +56,7 @@ export default function ScannerClient() {
       androidSDKVersion: info.androidSDKVersion,
       manufacturer: info.manufacturer,
       webViewVersion: info.webViewVersion,
+      osVersion: info.osVersion,
     });
   };
 

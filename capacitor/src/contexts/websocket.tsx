@@ -136,6 +136,7 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
       setDeviceInfo({
         model: device.model,
         operatingSystem: device.operatingSystem,
+        osVersion: device.osVersion,
         androidSDKVersion: device.androidSDKVersion,
         manufacturer: device.manufacturer,
         webViewVersion: device.webViewVersion,
