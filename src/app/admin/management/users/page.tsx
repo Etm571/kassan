@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { FiPlus, FiSave, FiTrash2, FiEdit2, FiSearch, FiChevronLeft, FiChevronRight, FiUser } from "react-icons/fi";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { FiPlus, FiSave, FiTrash2, FiEdit2, FiSearch, FiChevronLeft, FiChevronRight, FiUser, FiMoreVertical } from "react-icons/fi";
+import DropdownPortal from "@/app/components/dropdownportal";
+
 
 type User = {
   id: string;
@@ -11,6 +13,7 @@ type User = {
   role: string;
   createdAt: string;
   suspended?: boolean;
+  active?: boolean;
 };
 
 export default function UserManagement() {
@@ -20,7 +23,10 @@ export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const usersPerPage = 20;
+  const dropdownButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
 
   useEffect(() => {
     fetchUsers();
@@ -29,11 +35,12 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     const res = await fetch("/api/admin/users");
     const data = await res.json();
+    console.log(data)
     setUsers(Array.isArray(data) ? data : []);
   };
 
   const filteredUsers = useMemo(() => {
-    return users.filter(user => 
+    return users.filter(user =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.userId.includes(searchTerm)
@@ -68,7 +75,7 @@ export default function UserManagement() {
   };
 
   const handleUpdate = async (user: User) => {
-    const res = await fetch(`/api/admin/users/`, {
+    const res = await fetch(`/api/admin/users`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(user),
@@ -87,7 +94,7 @@ export default function UserManagement() {
     const confirmed = confirm("Are you sure you want to delete this user?");
     if (!confirmed) return;
 
-    const res = await fetch(`/api/admin/users/`, {
+    const res = await fetch(`/api/admin/users`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(user)
@@ -114,9 +121,9 @@ export default function UserManagement() {
       const res = await fetch(`/api/admin/users`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          id: user.id, 
-          suspended: !user.suspended 
+        body: JSON.stringify({
+          id: user.id,
+          suspended: !user.suspended
         }),
       });
 
@@ -127,6 +134,7 @@ export default function UserManagement() {
             : "User suspended successfully"
         );
         fetchUsers();
+        setOpenDropdown(null);
       } else {
         const error = await res.json();
         setMessage(`Error: ${error.error || "Failed to update suspension"}`);
@@ -136,10 +144,49 @@ export default function UserManagement() {
     }
   };
 
+  const handleActiveStatus = async (user: User) => {
+    const confirmed = confirm(
+      user.active
+        ? "Deactivate this user?"
+        : "Activate this user?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/admin/users/active`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.userId,
+          active: !user.active
+        }),
+      });
+
+      if (res.ok) {
+        setMessage(
+          user.active
+            ? "User deactivated successfully"
+            : "User activated successfully"
+        );
+        fetchUsers();
+        setOpenDropdown(null);
+      } else {
+        const error = await res.json();
+        setMessage(`Error: ${error.error || "Failed to update active status"}`);
+      }
+    } catch (error) {
+      setMessage("Network error occurred while updating active status");
+    }
+  };
+
   const handleUserChange = (id: string, field: keyof User, value: string) => {
     setUsers((prev) =>
       prev.map((user) => (user.id === id ? { ...user, [field]: value } : user))
     );
+  };
+
+  const toggleDropdown = (userId: string) => {
+    setOpenDropdown(openDropdown === userId ? null : userId);
   };
 
   return (
@@ -204,14 +251,15 @@ export default function UserManagement() {
         )}
       </div>
 
-      <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="min-w-full">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="min-w-full overflow-x-auto">
           <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 p-3 font-medium text-gray-700 gap-4">
             <div className="col-span-2">ID</div>
             <div className="col-span-2">Name</div>
             <div className="col-span-3">Email</div>
             <div className="col-span-2">Role</div>
             <div className="col-span-1">Created</div>
+            <div className="col-span-1">Status</div>
             <div className="col-span-1">Actions</div>
           </div>
 
@@ -220,71 +268,108 @@ export default function UserManagement() {
               {searchTerm ? "No matching users found" : "No users found. Add your first user above."}
             </div>
           ) : (
-            paginatedUsers.map((user) => (
-              <div key={user.id} className="grid grid-cols-12 border-b border-gray-100 hover:bg-gray-50 p-3 items-center gap-4">
-                <div className="col-span-2">
-                  <input
-                    type="text"
-                    value={user.userId}
-                    readOnly
-                    className="w-full p-2 border rounded text-sm bg-gray-100 cursor-not-allowed text-gray-500 truncate"
-                  />
+            <div>
+              {paginatedUsers.map((user) => (
+                <div key={user.id} className="grid grid-cols-12 border-b border-gray-100 hover:bg-gray-50 p-3 items-center gap-4 relative">
+                  <div className="col-span-2">
+                    <input
+                      type="text"
+                      value={user.userId}
+                      readOnly
+                      className="w-full p-2 border rounded text-sm bg-gray-100 cursor-not-allowed text-gray-500 truncate"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <input
+                      type="text"
+                      value={user.name}
+                      onChange={(e) => handleUserChange(user.id, "name", e.target.value)}
+                      className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="col-span-3">
+                    <input
+                      type="email"
+                      value={user.email}
+                      onChange={(e) => handleUserChange(user.id, "email", e.target.value)}
+                      className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleUserChange(user.id, "role", e.target.value)}
+                      className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="CUSTOMER">Customer</option>
+                      <option value="STAFF">Staff</option>
+                      <option value="ADMIN">Admin</option>
+                    </select>
+                  </div>
+                  <div className="col-span-1 text-sm text-gray-500">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </div>
+                  <div className="col-span-1 text-sm">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.suspended
+                      ? "bg-yellow-100 text-yellow-800"
+                      : user.active
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                      }`}>
+                      {user.suspended ? "Suspended" : user.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div className="col-span-1 flex space-x-2">
+                    <button
+                      onClick={() => handleUpdate(user)}
+                      className="p-2 text-blue-600 hover:text-blue-800 rounded hover:bg-blue-50"
+                      title="Update"
+                    >
+                      <FiSave size={16} />
+                    </button>
+                    <div className="relative">
+                      <button
+                        ref={el => { dropdownButtonRefs.current[user.id] = el; }}
+                        onClick={() => toggleDropdown(user.id)}
+                        className="p-2 text-gray-600 hover:text-gray-800 rounded hover:bg-gray-100"
+                        title="More options"
+                      >
+                        <FiMoreVertical size={16} />
+                      </button>
+                      {openDropdown === user.id && dropdownButtonRefs.current[user.id] !== null && (
+                        <DropdownPortal
+                          triggerRef={{ current: dropdownButtonRefs.current[user.id] as HTMLElement }}
+                          onClose={() => setOpenDropdown(null)}
+                        >
+                          <div className="w-48 bg-white rounded-md shadow-lg border border-gray-200">
+                            <div className="py-1">
+                              <button
+                                onClick={() => handleSuspend(user)}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                {user.suspended ? "Unsuspend User" : "Suspend User"}
+                              </button>
+                              <button
+                                onClick={() => handleActiveStatus(user)}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                {user.active ? "Deactivate User" : "Activate User"}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(user)}
+                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                              >
+                                Delete User
+                              </button>
+                            </div>
+                          </div>
+                        </DropdownPortal>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="col-span-2">
-                  <input
-                    type="text"
-                    value={user.name}
-                    onChange={(e) => handleUserChange(user.id, "name", e.target.value)}
-                    className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="col-span-3">
-                  <input
-                    type="email"
-                    value={user.email}
-                    onChange={(e) => handleUserChange(user.id, "email", e.target.value)}
-                    className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleUserChange(user.id, "role", e.target.value)}
-                    className="w-full p-2 border rounded text-sm focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="CUSTOMER">Customer</option>
-                    <option value="STAFF">Staff</option>
-                    <option value="ADMIN">Admin</option>
-                  </select>
-                </div>
-                <div className="col-span-1 text-sm text-gray-500">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </div>
-                <div className="col-span-1 flex space-x-2">
-                  <button
-                    onClick={() => handleUpdate(user)}
-                    className="p-2 text-blue-600 hover:text-blue-800 rounded hover:bg-blue-50"
-                    title="Update"
-                  >
-                    <FiSave size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleSuspend(user)}
-                    className={`p-2 rounded ${user.suspended ? "text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50" : "text-gray-500 hover:text-yellow-600 hover:bg-yellow-50"}`}
-                    title={user.suspended ? "Unsuspend" : "Suspend"}
-                  >
-                    {user.suspended ? "🔒" : "🔓"}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(user)}
-                    className="p-2 text-red-600 hover:text-red-800 rounded hover:bg-red-50"
-                    title="Delete"
-                  >
-                    <FiTrash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>
