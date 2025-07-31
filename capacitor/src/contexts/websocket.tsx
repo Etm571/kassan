@@ -7,6 +7,9 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { EMDK } from "capacitor-emdk";
+import { Device } from '@capacitor/device';
+import type { DeviceInfo, BatteryInfo } from '../types/types';
+
 
 interface WebSocketContextValue {
   connected: boolean;
@@ -31,6 +34,8 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
   const reconnectAttemptsRef = useRef<number>(0);
   const maxReconnectAttempts = 5;
   const navigate = useNavigate();
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
+  const [batteryInfo, setBatteryInfo] = useState<BatteryInfo | null>(null);
 
   const initWebSocket = () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -55,8 +60,16 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
       reconnectAttemptsRef.current = 0;
       setConnected(true);
 
-      ws.send(JSON.stringify({ type: "register-scanner" }));
-      console.log("[WebSocket] Connected and sent register-scanner");
+      ws.send(JSON.stringify({
+        type: "register-scanner",
+        deviceInfo: deviceInfo,
+        batteryInfo: batteryInfo
+      }));
+      console.log({
+        type: "register-scanner",
+        deviceInfo: deviceInfo,
+        batteryInfo: batteryInfo
+      })
     };
 
     ws.onmessage = (event: MessageEvent) => {
@@ -114,13 +127,36 @@ export const WebSocketProvider: React.FC<React.PropsWithChildren<{}>> = ({
   };
 
   useEffect(() => {
-    initWebSocket();
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+    const fetchDeviceAndBatteryInfo = async () => {
+      const [device, battery] = await Promise.all([
+        Device.getInfo(),
+        Device.getBatteryInfo(),
+      ]);
+
+      setDeviceInfo({
+        model: device.model,
+        operatingSystem: device.operatingSystem,
+        androidSDKVersion: device.androidSDKVersion,
+        manufacturer: device.manufacturer,
+        webViewVersion: device.webViewVersion,
+      });
+
+      setBatteryInfo({
+        batteryLevel: battery.batteryLevel,
+        isCharging: battery.isCharging,
+      });
     };
+
+    fetchDeviceAndBatteryInfo();
   }, []);
+
+  useEffect(() => {
+    if (deviceInfo && batteryInfo) {
+      initWebSocket();
+    }
+  }, [deviceInfo, batteryInfo]);
+
+
 
   const sendMessage = (msg: any) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
