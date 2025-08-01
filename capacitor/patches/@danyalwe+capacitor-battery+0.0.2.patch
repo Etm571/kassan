@@ -1,0 +1,13 @@
+diff --git a/node_modules/@danyalwe/capacitor-battery/package.json b/node_modules/@danyalwe/capacitor-battery/package.json
+index a3ab4ff..796dd82 100644
+--- a/node_modules/@danyalwe/capacitor-battery/package.json
++++ b/node_modules/@danyalwe/capacitor-battery/package.json
+@@ -68,7 +68,7 @@
+     "typescript": "^5.1.6"
+   },
+   "peerDependencies": {
+-    "@capacitor/core": "^5.0.0"
++    "@capacitor/core": "^5.0.0 || ^6.0.0"
+   },
+   "prettier": "@ionic/prettier-config",
+   "swiftlint": "@ionic/swiftlint-config",

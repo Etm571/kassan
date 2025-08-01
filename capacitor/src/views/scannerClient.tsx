@@ -4,6 +4,7 @@ import "../styles/scannerClient.css";
 import { useWebSocket } from "../contexts/websocket";
 import { Device } from '@capacitor/device';
 import type { DeviceInfo, BatteryInfo } from '../types/types';
+import { Battery } from '@danyalwe/capacitor-battery';
 
 export default function ScannerClient() {
   const { connected, sendMessage } = useWebSocket();
@@ -19,6 +20,8 @@ export default function ScannerClient() {
     console.log("[ScannerClient] Sent free message (SSR-safe)");
     hasSentFree.current = true;
   }
+
+
 
   const handleScreenTap = () => {
     const newCount = tapCount + 1;
